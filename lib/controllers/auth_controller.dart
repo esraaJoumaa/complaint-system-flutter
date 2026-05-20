@@ -13,12 +13,8 @@ class AuthController extends GetxController {
   final AuthService _authService = Get.find<AuthService>();
   final GetStorage _storage = GetStorage();
 
-  /// البريد الإلكتروني المؤقت لاستخدامه في التحقق OTP
   String? tempEmail;
 
-  // ──────────────────────────────────────────────
-  // تسجيل الدخول
-  // ──────────────────────────────────────────────
   Future<void> login(String username, String password) async {
     isLoading.value = true;
     try {
@@ -33,9 +29,6 @@ class AuthController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // التسجيل
-  // ──────────────────────────────────────────────
   Future<void> register({
     required String name,
     required String email,
@@ -71,9 +64,6 @@ class AuthController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // التحقق من OTP
-  // ──────────────────────────────────────────────
   Future<void> verifyOtp(String code) async {
     if (tempEmail == null) {
       Get.snackbar('خطأ', 'لم يتم العثور على البريد الإلكتروني');
@@ -98,9 +88,6 @@ class AuthController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // تسجيل الخروج
-  // ──────────────────────────────────────────────
   Future<void> logout() async {
     await TokenStorage.clear();
     _storage.erase();
@@ -108,28 +95,21 @@ class AuthController extends GetxController {
     Get.offAllNamed(Routes.LOGIN);
   }
 
-  // ──────────────────────────────────────────────
-  // التوجيه حسب الدور
-  // ──────────────────────────────────────────────
   void _handleRoleBasedNavigation(UserModel user) {
     final String role = user.roleName?.toLowerCase().trim() ?? 'citizen';
 
     switch (role) {
       case 'manager':
-        // مدير القسم
         Get.offAllNamed(Routes.MANAGER_DASHBOARD);
         break;
       case 'official':
-        // مدير الجهة
         Get.offAllNamed(Routes.AUTHORITY_DASHBOARD);
         break;
       case 'employee':
-        // الموظف
         Get.offAllNamed(Routes.EMPLOYEE_DASHBOARD);
         break;
       case 'citizen':
       default:
-        // المواطن
         Get.offAllNamed(Routes.DASHBOARD);
         break;
     }

@@ -5,7 +5,6 @@ import '../../../controllers/complaint_controller.dart';
 class ComplaintFormPage extends StatelessWidget {
   ComplaintFormPage({super.key});
 
-  // استخدام Get.find إذا كان الكنترولر قد تم حقنه مسبقاً، أو Get.put إذا كانت هذه صفحة البداية
   final controller = Get.put(ComplaintController());
 
   @override
@@ -152,7 +151,6 @@ class ComplaintFormPage extends StatelessWidget {
     return Obx(() {
       final departments = controller.currentDepartments;
       return DropdownButtonFormField<int>(
-        // نستخدم key لإجبار الـ Dropdown على إعادة البناء عند تغيير الجهة لتصفير القيمة
         key: ValueKey(controller.selectedAuthorityId.value),
         value: controller.selectedDepartmentId.value == 0
             ? null

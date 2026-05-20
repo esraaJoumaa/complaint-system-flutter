@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- هذا هو العنصر الذي يسبب الخطأ، تأكدي من الـ id -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewComplaints"
         android:layout_width="match_parent"

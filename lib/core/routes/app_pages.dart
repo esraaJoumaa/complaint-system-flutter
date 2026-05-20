@@ -1,10 +1,8 @@
 import 'package:get/get.dart';
 
-// Routes & Middleware
 import 'app_routes.dart';
 import '../../middleware/auth_middleware.dart';
 
-// Auth Screens
 import '../../screens/auth/login_screen.dart';
 import '../../screens/auth/register_screen.dart';
 import '../../screens/auth/otp_screen.dart';
@@ -13,27 +11,21 @@ import '../../screens/auth/complaint_form_page.dart';
 import '../../screens/auth/success_page.dart';
 import '../../screens/auth/tracking_screen.dart';
 
-// Home
 import '../../screens/home/home_screen.dart';
 
-// Chat
 import '../../screens/chat/chat_screen.dart';
 
-// Splash
 import '../../screens/splash/splash_screen.dart';
 
-// Employee Screens
 import '../../screens/employee/complaint_details_page.dart';
 import '../../screens/employee/employee_dashboard_page.dart';
 import '../../screens/employee/employee_complaints_list_page.dart';
 
-// Department Manager Screens
 import '../../screens/department_manager/department_manager_dashboard_screen.dart';
 import '../../screens/department_manager/department_complaints_screen.dart';
 import '../../screens/department_manager/department_complaint_detail_screen.dart';
 import '../../screens/department_manager/create_employee_screen.dart';
 
-// Bindings
 import '../../bindings/dashboard_binding.dart';
 import '../../bindings/initial_binding.dart';
 import '../../bindings/employee_binding.dart';
@@ -45,10 +37,6 @@ abstract class AppPages {
   static const String INITIAL = Routes.SPLASH;
 
   static final List<GetPage<dynamic>> pages = <GetPage<dynamic>>[
-
-    // ──────────────────────────────────────────────
-    // Splash & Auth
-    // ──────────────────────────────────────────────
     GetPage<void>(
       name: Routes.SPLASH,
       page: () => const SplashScreen(),
@@ -69,24 +57,15 @@ abstract class AppPages {
       transition: Transition.native,
     ),
 
-    GetPage<void>(
-      name: Routes.OTP,
-      page: () => const OtpScreen(),
-    ),
+    GetPage<void>(name: Routes.OTP, page: () => const OtpScreen()),
 
-    // ──────────────────────────────────────────────
-    // Citizen — المواطن
-    // ──────────────────────────────────────────────
     GetPage<void>(
       name: Routes.DASHBOARD,
       page: () => const DashboardView(),
       binding: DashboardBinding(),
     ),
 
-    GetPage<void>(
-      name: Routes.ADD_COMPLAINT,
-      page: () => ComplaintFormPage(),
-    ),
+    GetPage<void>(name: Routes.ADD_COMPLAINT, page: () => ComplaintFormPage()),
 
     GetPage<void>(
       name: Routes.SUCCESS,
@@ -101,10 +80,7 @@ abstract class AppPages {
       },
     ),
 
-    GetPage<void>(
-      name: Routes.TRACKING,
-      page: () => TrackingScreen(),
-    ),
+    GetPage<void>(name: Routes.TRACKING, page: () => TrackingScreen()),
 
     GetPage<void>(
       name: Routes.HOME,
@@ -112,17 +88,8 @@ abstract class AppPages {
       transition: Transition.fadeIn,
     ),
 
-    // ──────────────────────────────────────────────
-    // Chat — مشترك بين جميع الأدوار
-    // ──────────────────────────────────────────────
-    GetPage<void>(
-      name: Routes.CHAT,
-      page: () => ChatScreen(),
-    ),
+    GetPage<void>(name: Routes.CHAT, page: () => ChatScreen()),
 
-    // ──────────────────────────────────────────────
-    // Employee — الموظف
-    // ──────────────────────────────────────────────
     GetPage<void>(
       name: Routes.EMPLOYEE_DASHBOARD,
       page: () => const EmployeeDashboardPage(),
@@ -140,9 +107,6 @@ abstract class AppPages {
       page: () => const ComplaintDetailsPage(),
     ),
 
-    // ──────────────────────────────────────────────
-    // Department Manager — مدير القسم
-    // ──────────────────────────────────────────────
     GetPage<void>(
       name: Routes.MANAGER_DASHBOARD,
       page: () => const DepartmentManagerDashboardScreen(),

@@ -5,43 +5,25 @@ import '../../models/employee_model.dart';
 import '../../services/department_manager_service.dart';
 import '../../core/routes/app_routes.dart';
 
-/// Controller مدير القسم — يتحكم في جميع حالات الواجهة والمنطق
-/// يُستخدم في: الداش بورد، قوائم الشكاوي، تفاصيل الشكوى، إنشاء موظف
 class DepartmentManagerController extends GetxController {
   final DepartmentManagerService _service = DepartmentManagerService.instance;
 
-  // ──────────────────────────────────────────────
-  // حالات التحميل
-  // ──────────────────────────────────────────────
-  final RxBool isLoadingStats      = false.obs;
+  final RxBool isLoadingStats = false.obs;
   final RxBool isLoadingComplaints = false.obs;
-  final RxBool isLoadingAction     = false.obs; // للأزرار (إغلاق، رد، إنشاء)
+  final RxBool isLoadingAction = false.obs;
 
-  // ──────────────────────────────────────────────
-  // البيانات الرئيسية
-  // ──────────────────────────────────────────────
-  final RxMap<String, dynamic> stats       = <String, dynamic>{}.obs;
-  final RxList<ComplaintModel> complaints  = <ComplaintModel>[].obs;
+  final RxMap<String, dynamic> stats = <String, dynamic>{}.obs;
+  final RxList<ComplaintModel> complaints = <ComplaintModel>[].obs;
   final Rx<ComplaintModel?> selectedComplaint = Rx<ComplaintModel?>(null);
 
-  /// الحالة المحددة حالياً في الفلتر
   final RxString currentStatus = 'new'.obs;
 
-  // ──────────────────────────────────────────────
-  // بيانات إنشاء الموظف
-  // ──────────────────────────────────────────────
-  final RxList<Map<String, dynamic>> myDepartments = <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> myDepartments =
+      <Map<String, dynamic>>[].obs;
   final Rx<EmployeeModel?> createdEmployee = Rx<EmployeeModel?>(null);
 
-  // ──────────────────────────────────────────────
-  // رسائل الخطأ
-  // ──────────────────────────────────────────────
   final RxString complaintsError = ''.obs;
-  final RxString statsError      = ''.obs;
-
-  // ──────────────────────────────────────────────
-  // Lifecycle
-  // ──────────────────────────────────────────────
+  final RxString statsError = ''.obs;
 
   @override
   void onInit() {
@@ -49,15 +31,10 @@ class DepartmentManagerController extends GetxController {
     _loadInitialData();
   }
 
-  /// تحميل البيانات الأولية للداش بورد
   void _loadInitialData() {
     fetchStats();
     fetchComplaintsByStatus(currentStatus.value);
   }
-
-  // ──────────────────────────────────────────────
-  // 1. الإحصائيات
-  // ──────────────────────────────────────────────
 
   Future<void> fetchStats() async {
     try {
@@ -72,11 +49,6 @@ class DepartmentManagerController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 2. الشكاوي
-  // ──────────────────────────────────────────────
-
-  /// جلب الشكاوي حسب الحالة وتحديث الفلتر النشط
   Future<void> fetchComplaintsByStatus(String status) async {
     try {
       currentStatus(status);
@@ -93,7 +65,6 @@ class DepartmentManagerController extends GetxController {
     }
   }
 
-  /// فتح تفاصيل شكوى — إذا كانت جديدة تنتقل تلقائياً لـ "قيد المعالجة"
   Future<void> openComplaint(ComplaintModel complaint) async {
     selectedComplaint.value = complaint;
 
@@ -107,18 +78,13 @@ class DepartmentManagerController extends GetxController {
     );
   }
 
-  /// تحديث حالة الشكوى تلقائياً عند الفتح
   Future<void> _autoMarkInProgress(ComplaintModel complaint) async {
     try {
       await _service.updateComplaintStatus(complaint.id!, 'in_progress');
-      // تحديث النموذج المحلي بدون طلب جديد
       selectedComplaint.value = _copyWithStatus(complaint, 'in_progress');
-    } catch (_) {
-      // لا نوقف التنقل بسبب هذا الخطأ
-    }
+    } catch (_) {}
   }
 
-  /// إغلاق الشكوى مع الرد الرسمي
   Future<void> closeComplaint(int id, String replyText) async {
     if (replyText.trim().isEmpty) {
       _showError('يرجى كتابة الرد قبل الإغلاق');
@@ -139,7 +105,6 @@ class DepartmentManagerController extends GetxController {
     }
   }
 
-  /// تحديث الحالة يدوياً (للحالات الاستثنائية)
   Future<void> updateStatus(int id, String status) async {
     try {
       isLoadingAction(true);
@@ -152,23 +117,16 @@ class DepartmentManagerController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 3. فتح الشات
-  // ──────────────────────────────────────────────
-
-  /// فتح المحادثة مع المواطن الخاصة بشكوى محددة
   void openChat(ComplaintModel complaint) {
-    Get.toNamed(Routes.CHAT, arguments: {
-      'complaint_id': complaint.id,
-      'complaint_title': complaint.title,
-    });
+    Get.toNamed(
+      Routes.CHAT,
+      arguments: {
+        'complaint_id': complaint.id,
+        'complaint_title': complaint.title,
+      },
+    );
   }
 
-  // ──────────────────────────────────────────────
-  // 4. إنشاء موظف جديد
-  // ──────────────────────────────────────────────
-
-  /// جلب الأقسام التابعة للمدير (لاستخدامها في Dropdown)
   Future<void> fetchMyDepartments() async {
     try {
       final result = await _service.fetchMyDepartments();
@@ -214,11 +172,6 @@ class DepartmentManagerController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // Helpers
-  // ──────────────────────────────────────────────
-
-  /// نسخ الشكوى مع تغيير الحالة فقط (immutable update)
   ComplaintModel _copyWithStatus(ComplaintModel c, String status) {
     return ComplaintModel(
       id: c.id,

@@ -7,13 +7,11 @@ import '../../core/routes/app_routes.dart';
 class EmployeeController extends GetxController {
   final ComplaintService _service = ComplaintService();
 
-  // ── الحالات ──
-  final RxBool isLoading        = false.obs;
-  final RxBool isLoadingAction  = false.obs;
-  final RxString errorMessage   = ''.obs;
-  final RxString currentStatus  = 'new'.obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isLoadingAction = false.obs;
+  final RxString errorMessage = ''.obs;
+  final RxString currentStatus = 'new'.obs;
 
-  // ── البيانات ──
   final RxList<ComplaintModel> complaints = <ComplaintModel>[].obs;
   final Rx<ComplaintModel?> selectedComplaint = Rx<ComplaintModel?>(null);
 
@@ -26,9 +24,6 @@ class EmployeeController extends GetxController {
     fetchComplaints();
   }
 
-  // ──────────────────────────────────────────────
-  // جلب الشكاوي
-  // ──────────────────────────────────────────────
   Future<void> fetchComplaints() async {
     try {
       isLoading(true);
@@ -48,9 +43,6 @@ class EmployeeController extends GetxController {
     await fetchComplaints();
   }
 
-  // ──────────────────────────────────────────────
-  // فتح الشكوى — تنتقل تلقائياً لـ in_progress إن كانت جديدة
-  // ──────────────────────────────────────────────
   Future<void> openAndProcessComplaint(ComplaintModel complaint) async {
     selectedComplaint.value = complaint;
 
@@ -58,19 +50,12 @@ class EmployeeController extends GetxController {
       try {
         await _service.updateComplaintStatus(complaint.id!, 'in_progress');
         selectedComplaint.value = _copyWithStatus(complaint, 'in_progress');
-      } catch (_) {
-      }
+      } catch (_) {}
     }
 
-    Get.toNamed(
-      Routes.COMPLAINT_DETAILS,
-      arguments: selectedComplaint.value,
-    );
+    Get.toNamed(Routes.COMPLAINT_DETAILS, arguments: selectedComplaint.value);
   }
 
-  // ──────────────────────────────────────────────
-  // إغلاق الشكوى مع الرد الرسمي
-  // ──────────────────────────────────────────────
   Future<void> closeComplaint(int id, String responseText) async {
     if (responseText.trim().isEmpty) {
       _showError('يرجى كتابة الرد قبل الإغلاق');
@@ -81,8 +66,8 @@ class EmployeeController extends GetxController {
       isLoadingAction(true);
       await _service.respondToComplaint(id, responseText);
 
-      Get.back(); // إغلاق الـ Dialog
-      Get.back(); // العودة لقائمة الشكاوي
+      Get.back();
+      Get.back();
       _showSuccess('تم إغلاق الشكوى وإشعار المواطن بنجاح');
       await fetchComplaints();
     } catch (e) {
@@ -92,16 +77,15 @@ class EmployeeController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // فتح الشات
-  // ──────────────────────────────────────────────
   void openChat(ComplaintModel complaint) {
-    Get.toNamed(Routes.CHAT, arguments: {
-      'complaint_id': complaint.id,
-      'complaint_title': complaint.title,
-    });
+    Get.toNamed(
+      Routes.CHAT,
+      arguments: {
+        'complaint_id': complaint.id,
+        'complaint_title': complaint.title,
+      },
+    );
   }
-
 
   ComplaintModel _copyWithStatus(ComplaintModel c, String status) {
     return ComplaintModel(

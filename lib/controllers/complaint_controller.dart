@@ -6,14 +6,12 @@ import '../core/routes/app_routes.dart';
 import '../services/complaint_service.dart';
 import '../models/complaint_model.dart';
 
-/// Controller المواطن — تقديم شكوى + متابعتها
 class ComplaintController extends GetxController {
   ComplaintController({ComplaintService? complaintService})
     : _complaintService = complaintService ?? ComplaintService();
 
   final ComplaintService _complaintService;
 
-  // ── حقول النموذج ──
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController titleController = TextEditingController();
   final TextEditingController descriptionController = TextEditingController();
@@ -47,9 +45,6 @@ class ComplaintController extends GetxController {
       departmentsByAuthority[selectedAuthorityId.value] ??
       const <int, String>{};
 
-  // ──────────────────────────────────────────────
-  // متابعة الشكوى
-  // ──────────────────────────────────────────────
   Future<void> trackComplaint() async {
     final String raw = trackIdController.text.trim();
 
@@ -58,7 +53,6 @@ class ComplaintController extends GetxController {
       return;
     }
 
-    // التحقق من أن المدخل رقم صحيح
     final int? id = int.tryParse(raw);
     if (id == null) {
       _showError('رقم الشكوى يجب أن يكون رقماً صحيحاً');
@@ -78,9 +72,6 @@ class ComplaintController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // اختيار المرفقات
-  // ──────────────────────────────────────────────
   Future<void> pickAttachment() async {
     try {
       final FilePickerResult? result = await FilePicker.pickFiles(
@@ -113,9 +104,6 @@ class ComplaintController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // التحقق من النموذج
-  // ──────────────────────────────────────────────
   bool validateForm() {
     if (fullNameController.text.trim().isEmpty) {
       _showError('يرجى إدخال الاسم الكامل');
@@ -140,9 +128,6 @@ class ComplaintController extends GetxController {
     return true;
   }
 
-  // ──────────────────────────────────────────────
-  // تقديم الشكوى
-  // ──────────────────────────────────────────────
   Future<void> submitComplaint() async {
     if (!validateForm()) return;
 

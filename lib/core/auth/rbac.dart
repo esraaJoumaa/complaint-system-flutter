@@ -3,13 +3,11 @@ import 'package:get_storage/get_storage.dart';
 class Rbac {
   Rbac._();
 
-  // تعريف الأدوار الرسمية التي لها صلاحيات الدخول للوحات التحكم
   static const String _roleManager = 'manager';
   static const String _roleEmployee = 'employee';
   static const String _roleOfficial = 'official';
   static const String _roleCitizen = 'citizen';
 
-  // استخراج الدور الحالي للمستخدم من الذاكرة الدائمة
   static String? currentRole() {
     final dynamic raw = GetStorage().read('user_data');
     if (raw is! Map) return null;

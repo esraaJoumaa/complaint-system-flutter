@@ -6,7 +6,6 @@
     android:orientation="vertical"
     android:padding="20dp">
 
-    <!-- مساحة الكتابة: تم تعديلها لتكون بيضاء سادة وبدون إطار -->
     <EditText
         android:id="@+id/etFullScreenInput"
         android:layout_width="match_parent"
@@ -22,7 +21,6 @@
         android:inputType="textMultiLine"
         android:padding="10dp" />
 
-    <!-- زر الإنهاء: بون متناسق مع التطبيق (تركواز) -->
     <Button
         android:id="@+id/btnDone"
         android:layout_width="wrap_content"

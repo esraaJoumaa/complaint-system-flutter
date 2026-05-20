@@ -100,10 +100,6 @@ class EmployeeModel {
   };
 }
 
-// ──────────────────────────────────────────────
-// Nested Model: بيانات الدور
-// ──────────────────────────────────────────────
-
 class RoleInfo {
   final int id;
   final String name;
@@ -133,10 +129,6 @@ class RoleInfo {
   }
 }
 
-// ──────────────────────────────────────────────
-// Nested Model: بيانات الجهة
-// ──────────────────────────────────────────────
-
 class AuthorityInfo {
   final int id;
   final String name;
@@ -159,10 +151,6 @@ class AuthorityInfo {
     );
   }
 }
-
-// ──────────────────────────────────────────────
-// Nested Model: بيانات القسم
-// ──────────────────────────────────────────────
 
 class DepartmentInfo {
   final int id;
