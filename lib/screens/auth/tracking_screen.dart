@@ -7,8 +7,8 @@ import '../../core/routes/app_routes.dart';
 class TrackingScreen extends StatelessWidget {
   TrackingScreen({super.key});
 
-  static const Color _primary    = Color(0xFF00838F);
-  static const Color _dark       = Color(0xFF006064);
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
   static const Color _background = Color(0xFFE0F7FA);
 
   final TrackingController controller = Get.put(TrackingController());
@@ -32,7 +32,10 @@ class TrackingScreen extends StatelessWidget {
           ),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
           onPressed: () => Get.back(),
         ),
         bottom: PreferredSize(
@@ -74,8 +77,7 @@ class TrackingScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     _buildStatusStepper(complaint.statusStepIndex),
                     const SizedBox(height: 16),
-                    if (complaint.canChat)
-                      _buildChatButton(complaint),
+                    if (complaint.canChat) _buildChatButton(complaint),
                   ],
                 );
               }),
@@ -85,7 +87,6 @@ class TrackingScreen extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildSearchSection() {
     return Container(
@@ -146,7 +147,11 @@ class TrackingScreen extends StatelessWidget {
                 color: Color(0xFFB0BEC5),
                 fontSize: 13,
               ),
-              prefixIcon: const Icon(Icons.tag_rounded, color: _primary, size: 20),
+              prefixIcon: const Icon(
+                Icons.tag_rounded,
+                color: _primary,
+                size: 20,
+              ),
               filled: true,
               fillColor: const Color(0xFFF5FAFB),
               border: OutlineInputBorder(
@@ -169,69 +174,73 @@ class TrackingScreen extends StatelessWidget {
             onSubmitted: (_) => _onSearch(),
           ),
           const SizedBox(height: 14),
-          Obx(() => GestureDetector(
-                onTap: controller.isLoading.value ? null : _onSearch,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: double.infinity,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    gradient: controller.isLoading.value
-                        ? const LinearGradient(
-                            colors: [Color(0xFF80CBC4), Color(0xFF80CBC4)],
-                          )
-                        : const LinearGradient(
-                            colors: [_dark, _primary],
-                            begin: Alignment.centerRight,
-                            end: Alignment.centerLeft,
+          Obx(
+            () => GestureDetector(
+              onTap: controller.isLoading.value ? null : _onSearch,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: double.infinity,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: controller.isLoading.value
+                      ? const LinearGradient(
+                          colors: [Color(0xFF80CBC4), Color(0xFF80CBC4)],
+                        )
+                      : const LinearGradient(
+                          colors: [_dark, _primary],
+                          begin: Alignment.centerRight,
+                          end: Alignment.centerLeft,
+                        ),
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: controller.isLoading.value
+                      ? []
+                      : [
+                          BoxShadow(
+                            color: _primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
                           ),
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: controller.isLoading.value
-                        ? []
-                        : [
-                            BoxShadow(
-                              color: _primary.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
+                        ],
+                ),
+                child: Center(
+                  child: controller.isLoading.value
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'استعلام عن الحالة',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 15,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(width: 8),
+                            Icon(
+                              Icons.search_rounded,
+                              color: Colors.white,
+                              size: 20,
                             ),
                           ],
-                  ),
-                  child: Center(
-                    child: controller.isLoading.value
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                'استعلام عن الحالة',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              SizedBox(width: 8),
-                              Icon(Icons.search_rounded,
-                                  color: Colors.white, size: 20),
-                            ],
-                          ),
-                  ),
+                        ),
                 ),
-              )),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   void _onSearch() => controller.trackById(idController.text.trim());
-
 
   Widget _buildInitialState() {
     return Center(
@@ -270,9 +279,6 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // بطاقة معلومات الشكوى
-  // ──────────────────────────────────────────────
   Widget _buildComplaintCard(complaint) {
     return Container(
       width: double.infinity,
@@ -343,7 +349,6 @@ class TrackingScreen extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildStatusStepper(int currentStep) {
     return Container(
@@ -424,7 +429,6 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-
   Widget _buildChatButton(complaint) {
     return GestureDetector(
       onTap: () => Get.toNamed(
@@ -464,14 +468,16 @@ class TrackingScreen extends StatelessWidget {
               ),
             ),
             SizedBox(width: 10),
-            Icon(Icons.chat_bubble_outline_rounded,
-                color: Colors.white, size: 20),
+            Icon(
+              Icons.chat_bubble_outline_rounded,
+              color: Colors.white,
+              size: 20,
+            ),
           ],
         ),
       ),
     );
   }
-
 
   Widget _buildErrorBox(String message) {
     return Center(
@@ -486,16 +492,16 @@ class TrackingScreen extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline_rounded,
-                color: Colors.red.shade400, size: 40),
+            Icon(
+              Icons.error_outline_rounded,
+              color: Colors.red.shade400,
+              size: 40,
+            ),
             const SizedBox(height: 12),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.red.shade700,
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.red.shade700, fontSize: 14),
             ),
             const SizedBox(height: 16),
             GestureDetector(
@@ -525,7 +531,6 @@ class TrackingScreen extends StatelessWidget {
   }
 }
 
-
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
@@ -552,10 +557,7 @@ class _DetailRow extends StatelessWidget {
         const SizedBox(width: 16),
         Text(
           label,
-          style: const TextStyle(
-            color: Color(0xFF90A4AE),
-            fontSize: 13,
-          ),
+          style: const TextStyle(color: Color(0xFF90A4AE), fontSize: 13),
         ),
       ],
     );

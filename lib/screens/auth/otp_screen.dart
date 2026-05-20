@@ -13,7 +13,7 @@ class OtpScreen extends StatelessWidget {
     final String userEmail = authController.tempEmail ?? "user@email.com";
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F8FA), // لون خلفية هادئ
+      backgroundColor: const Color(0xFFF0F8FA),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
