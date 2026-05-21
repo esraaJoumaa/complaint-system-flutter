@@ -9,7 +9,6 @@ class AuthService {
   AuthService({Dio? dio}) : _dio = dio ?? DioClient.instance.dio;
   final Dio _dio;
 
-  /// POST /auth/login
   Future<UserModel> login(String username, String password) async {
     try {
       print(
@@ -50,7 +49,6 @@ class AuthService {
     required String birthdate,
   }) async {
     try {
-      // --- سطر كشف الخطأ (Debug Line) ---
       print(
         "DEBUG: Connecting to Register URL -> ${ApiConstants.baseUrl}${ApiConstants.register}",
       );

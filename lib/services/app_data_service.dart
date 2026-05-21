@@ -5,7 +5,6 @@ import '../models/department_model.dart';
 import 'base_client.dart';
 import 'dio_client.dart';
 
-/// Loads authorities and departments (filtered by authority) via [BaseClient.dio].
 class AppDataService {
   AppDataService({Dio? dio}) : _dio = dio ?? DioClient.instance.dio;
 

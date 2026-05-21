@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart'; // المكتبة المسؤولة عن حفظ التوكن
+import 'package:get_storage/get_storage.dart';
 
 import 'bindings/initial_binding.dart';
 import 'core/routes/app_pages.dart';
@@ -29,8 +29,7 @@ class MyApp extends StatelessWidget {
 
       initialBinding: InitialBinding(),
 
-      initialRoute:
-          AppPages.INITIAL, // سيذهب للـ Splash أولاً ليفحص حالة الدخول
+      initialRoute: AppPages.INITIAL,
       getPages: AppPages.pages,
 
       locale: const Locale('ar', 'SA'),

@@ -1,18 +1,10 @@
 import 'package:dio/dio.dart';
 
-/// Shared API error mapping utilities.
-///
-/// Networking client is implemented in `DioClient`.
 class BaseClient {
   static String handleError(DioException error) {
     final data = error.response?.data;
     if (data == null) return "فشل الاتصال بالسيرفر";
 
-    // Common Laravel formats:
-    // - { message: "...", errors: {...} }
-    // - { error: "..."}
-    // - "plain string"
-    // - HTML error page (string)
     if (data is Map) {
       final map = Map<String, dynamic>.from(data);
       final msg = map['message'] ?? map['error'];

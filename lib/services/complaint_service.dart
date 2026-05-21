@@ -10,9 +10,6 @@ class ComplaintService {
 
   final Dio _dio;
 
-  // ──────────────────────────────────────────────
-  // 1. تقديم شكوى جديدة (المواطن)
-  // ──────────────────────────────────────────────
   Future<ComplaintModel> storeComplaint({
     required String fullName,
     required String title,
@@ -52,9 +49,6 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 2. جلب الشكاوي حسب الحالة
-  // ──────────────────────────────────────────────
   Future<List<ComplaintModel>> getComplaintsByStatus(String status) async {
     try {
       final String backendStatus = _mapStatusToBackend(status);
@@ -69,9 +63,6 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 3. جلب جميع الشكاوي
-  // ──────────────────────────────────────────────
   Future<List<ComplaintModel>> getAllComplaints() async {
     try {
       final response = await _dio.get<dynamic>(ApiConstants.allComplaints);
@@ -83,9 +74,6 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 4. جلب تفاصيل شكوى بالـ ID
-  // ──────────────────────────────────────────────
   Future<ComplaintModel> getComplaintById(int id) async {
     try {
       final response = await _dio.get<dynamic>(ApiConstants.viewComplaint(id));
@@ -100,9 +88,6 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 5. تغيير حالة الشكوى
-  // ──────────────────────────────────────────────
   Future<bool> updateComplaintStatus(int id, String status) async {
     try {
       final response = await _dio.post<dynamic>(
@@ -121,9 +106,6 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 6. الرد الرسمي وإغلاق الشكوى
-  // ──────────────────────────────────────────────
   Future<bool> respondToComplaint(int id, String reply) async {
     try {
       final response = await _dio.post<dynamic>(

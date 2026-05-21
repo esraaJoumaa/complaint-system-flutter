@@ -9,9 +9,6 @@ class ChatService {
 
   final Dio _dio;
 
-  // ──────────────────────────────────────────────
-  // جلب سجل الرسائل
-  // ──────────────────────────────────────────────
   Future<List<MessageModel>> getHistory(int complaintId) async {
     try {
       final response = await _dio.get<dynamic>(
@@ -26,9 +23,6 @@ class ChatService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // إرسال رسالة
-  // ──────────────────────────────────────────────
   Future<MessageModel> sendMessage({
     required int complaintId,
     required String message,
@@ -49,8 +43,6 @@ class ChatService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // ──────────────────────────────────────────────
   Future<void> updateChatStatus(int complaintId, bool isClosed) async {
     try {
       const String path = '/chat/toggle-status';
