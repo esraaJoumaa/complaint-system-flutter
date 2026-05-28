@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../controllers/employee/employee_controller.dart';
-import '../../../core/routes/app_routes.dart';
-import '../../../services/auth_service.dart';
 import '../../../controllers/auth_controller.dart';
+import '../../../core/routes/app_routes.dart';
 
 class EmployeeDashboardPage extends StatelessWidget {
   const EmployeeDashboardPage({super.key});
@@ -13,9 +12,13 @@ class EmployeeDashboardPage extends StatelessWidget {
   static const Color _dark = Color(0xFF006064);
   static const Color _background = Color(0xFFE0F7FA);
 
+  EmployeeController get _controller => Get.isRegistered<EmployeeController>()
+      ? Get.find<EmployeeController>()
+      : Get.put(EmployeeController());
+
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<EmployeeController>();
+    final controller = _controller;
 
     return Scaffold(
       backgroundColor: _background,
@@ -36,6 +39,7 @@ class EmployeeDashboardPage extends StatelessWidget {
     );
   }
 
+  // ──────────────────────────────────────────────
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
@@ -54,7 +58,6 @@ class EmployeeDashboardPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // زر تسجيل الخروج
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -71,7 +74,6 @@ class EmployeeDashboardPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          // أيقونة الموظف
           Center(
             child: Container(
               width: 72,
@@ -99,7 +101,6 @@ class EmployeeDashboardPage extends StatelessWidget {
                 color: Colors.white,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
               ),
             ),
           ),
@@ -118,13 +119,15 @@ class EmployeeDashboardPage extends StatelessWidget {
     );
   }
 
+  // ──────────────────────────────────────────────
+  // أزرار الشكاوي الثلاثة
+  // ──────────────────────────────────────────────
   Widget _buildComplaintsSection(EmployeeController controller) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // العنوان
           const Text(
             'الشكاوي المسندة إليك',
             style: TextStyle(
@@ -143,14 +146,12 @@ class EmployeeDashboardPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          // البطاقات الثلاث
           Row(
             children: [
               Expanded(
                 child: _ComplaintCategoryCard(
                   icon: Icons.fiber_new_rounded,
                   label: 'الجديدة',
-                  statusKey: 'new',
                   color: const Color(0xFF00838F),
                   onTap: () {
                     controller.fetchComplaintsByStatus('new');
@@ -163,7 +164,6 @@ class EmployeeDashboardPage extends StatelessWidget {
                 child: _ComplaintCategoryCard(
                   icon: Icons.pending_actions_rounded,
                   label: 'قيد المعالجة',
-                  statusKey: 'in_progress',
                   color: const Color(0xFF0097A7),
                   onTap: () {
                     controller.fetchComplaintsByStatus('in_progress');
@@ -179,7 +179,6 @@ class EmployeeDashboardPage extends StatelessWidget {
                 child: _ComplaintCategoryCard(
                   icon: Icons.check_circle_outline_rounded,
                   label: 'المغلقة',
-                  statusKey: 'closed',
                   color: const Color(0xFF006064),
                   onTap: () {
                     controller.fetchComplaintsByStatus('closed');
@@ -193,8 +192,6 @@ class EmployeeDashboardPage extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 28),
-
-          // ── معلومات إضافية ──
           _buildInfoCard(),
         ],
       ),
@@ -375,6 +372,8 @@ class EmployeeDashboardPage extends StatelessWidget {
   }
 }
 
+// ══════════════════════════════════════════════════════
+
 class _HeaderIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -410,14 +409,12 @@ class _HeaderIconButton extends StatelessWidget {
 class _ComplaintCategoryCard extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String statusKey;
   final Color color;
   final VoidCallback onTap;
 
   const _ComplaintCategoryCard({
     required this.icon,
     required this.label,
-    required this.statusKey,
     required this.color,
     required this.onTap,
   });

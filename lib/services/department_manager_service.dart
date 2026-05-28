@@ -8,32 +8,15 @@ import '../models/employee_model.dart';
 
 class DepartmentManagerService {
   DepartmentManagerService._();
-
   static final DepartmentManagerService instance = DepartmentManagerService._();
-
   final Dio _dio = DioClient.instance.dio;
 
-  Future<Map<String, dynamic>> fetchManagerStats() async {
-    try {
-      final response = await _dio.get(ApiConstants.managerStats);
-      final data = response.data;
-      if (data is Map) {
-        final map = Map<String, dynamic>.from(data);
-        if (map['data'] is Map) {
-          return Map<String, dynamic>.from(map['data'] as Map);
-        }
-        return map;
-      }
-      return {};
-    } on DioException catch (e) {
-      throw BaseClient.handleError(e);
-    }
-  }
+  // ──────────────────────────────────────────────
 
   Future<List<ComplaintModel>> fetchAllComplaints() async {
     try {
-      final response = await _dio.get(ApiConstants.allComplaints);
-      return _parseComplaintList(response.data);
+      final response = await _dio.get(ApiConstants.managerComplaints);
+      return _parseList(response.data);
     } on DioException catch (e) {
       throw BaseClient.handleError(e);
     }
@@ -41,11 +24,10 @@ class DepartmentManagerService {
 
   Future<List<ComplaintModel>> fetchComplaintsByStatus(String status) async {
     try {
-      final String backendStatus = _mapStatusToBackend(status);
       final response = await _dio.get(
-        ApiConstants.filterComplaints(backendStatus),
+        ApiConstants.filterComplaints(_mapStatus(status)),
       );
-      return _parseComplaintList(response.data);
+      return _parseList(response.data);
     } on DioException catch (e) {
       throw BaseClient.handleError(e);
     }
@@ -70,12 +52,11 @@ class DepartmentManagerService {
     try {
       final response = await _dio.post(
         ApiConstants.updateStatus(id),
-        data: {'status': _mapStatusToBackend(status)},
+        data: {'status': _mapStatus(status)},
       );
       final data = response.data;
-      if (data is Map) {
+      if (data is Map)
         return data['success'] == true || response.statusCode == 200;
-      }
       return response.statusCode == 200;
     } on DioException catch (e) {
       throw BaseClient.handleError(e);
@@ -86,17 +67,22 @@ class DepartmentManagerService {
     try {
       final response = await _dio.post(
         ApiConstants.respondToComplaint(id),
-        data: {'reply': reply},
+        data: {
+          'reply': reply,
+          'status': ApiConstants.statusResolved,
+          'is_valid': true,
+        },
       );
       final data = response.data;
-      if (data is Map) {
+      if (data is Map)
         return data['success'] == true || response.statusCode == 200;
-      }
       return response.statusCode == 200;
     } on DioException catch (e) {
       throw BaseClient.handleError(e);
     }
   }
+
+  // ──────────────────────────────────────────────
 
   Future<EmployeeModel> createEmployee({
     required String name,
@@ -153,7 +139,24 @@ class DepartmentManagerService {
     }
   }
 
-  String _mapStatusToBackend(String status) {
+  Future<Map<String, dynamic>> fetchManagerStats() async {
+    try {
+      final response = await _dio.get(ApiConstants.managerStats);
+      final data = response.data;
+      if (data is Map) {
+        final map = Map<String, dynamic>.from(data);
+        if (map['data'] is Map)
+          return Map<String, dynamic>.from(map['data'] as Map);
+        return map;
+      }
+      return {};
+    } on DioException catch (e) {
+      throw BaseClient.handleError(e);
+    }
+  }
+
+  // ──────────────────────────────────────────────
+  String _mapStatus(String status) {
     switch (status.toLowerCase()) {
       case 'new':
       case 'pending':
@@ -169,20 +172,19 @@ class DepartmentManagerService {
     }
   }
 
-  List<ComplaintModel> _parseComplaintList(dynamic data) {
+  List<ComplaintModel> _parseList(dynamic data) {
     if (data == null) return [];
-    List<dynamic> rawList = [];
+    List<dynamic> raw = [];
     if (data is Map) {
       final map = Map<String, dynamic>.from(data);
-      if (map['data'] is List) {
-        rawList = map['data'] as List;
-      } else if (map['complaints'] is List) {
-        rawList = map['complaints'] as List;
-      }
+      if (map['data'] is List)
+        raw = map['data'] as List;
+      else if (map['complaints'] is List)
+        raw = map['complaints'] as List;
     } else if (data is List) {
-      rawList = data;
+      raw = data;
     }
-    return rawList
+    return raw
         .whereType<Map>()
         .map((e) => ComplaintModel.fromJson(Map<String, dynamic>.from(e)))
         .toList();

@@ -1,0 +1,175 @@
+import 'package:dio/dio.dart';
+
+import '../core/constants/api_constants.dart';
+import '../services/dio_client.dart';
+import '../services/base_client.dart';
+import '../models/complaint_model.dart';
+import '../models/employee_model.dart';
+
+class AuthorityService {
+  AuthorityService._();
+  static final AuthorityService instance = AuthorityService._();
+  final Dio _dio = DioClient.instance.dio;
+
+  Future<List<ComplaintModel>> fetchAllComplaints() async {
+    try {
+      final response = await _dio.get(ApiConstants.managerComplaints);
+      return _parseList(response.data);
+    } on DioException catch (e) {
+      throw BaseClient.handleError(e);
+    }
+  }
+
+  Future<List<ComplaintModel>> fetchComplaintsByStatus(String status) async {
+    try {
+      final response = await _dio.get(
+        ApiConstants.filterComplaints(_mapStatus(status)),
+      );
+      return _parseList(response.data);
+    } on DioException catch (e) {
+      throw BaseClient.handleError(e);
+    }
+  }
+
+  Future<ComplaintModel> fetchComplaintDetails(int id) async {
+    try {
+      final response = await _dio.get(ApiConstants.viewComplaint(id));
+      final data = response.data;
+      if (data is Map) {
+        final map = Map<String, dynamic>.from(data);
+        final raw = map['data'] ?? map;
+        return ComplaintModel.fromJson(Map<String, dynamic>.from(raw as Map));
+      }
+      throw 'صيغة البيانات غير متوقعة';
+    } on DioException catch (e) {
+      throw BaseClient.handleError(e);
+    }
+  }
+
+  Future<bool> updateComplaintStatus(int id, String status) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.updateStatus(id),
+        data: {'status': _mapStatus(status)},
+      );
+      final data = response.data;
+      if (data is Map)
+        return data['success'] == true || response.statusCode == 200;
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      throw BaseClient.handleError(e);
+    }
+  }
+
+  /// ✅ يُرسل: reply + status + is_valid
+  Future<bool> respondToComplaint(int id, String reply) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.respondToComplaint(id),
+        data: {
+          'reply': reply,
+          'status': ApiConstants.statusResolved,
+          'is_valid': true,
+        },
+      );
+      final data = response.data;
+      if (data is Map)
+        return data['success'] == true || response.statusCode == 200;
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      throw BaseClient.handleError(e);
+    }
+  }
+
+  // ──────────────────────────────────────────────
+
+  Future<List<Map<String, dynamic>>> fetchAllDepartments() async {
+    try {
+      final response = await _dio.get(ApiConstants.allDepartments);
+      final data = response.data;
+      if (data is Map && data['data'] is List) {
+        return List<Map<String, dynamic>>.from(
+          (data['data'] as List).map(
+            (e) => Map<String, dynamic>.from(e as Map),
+          ),
+        );
+      }
+      return [];
+    } on DioException catch (e) {
+      throw BaseClient.handleError(e);
+    }
+  }
+
+  Future<EmployeeModel> createUser({
+    required String name,
+    required String email,
+    required String username,
+    required String phone,
+    required String password,
+    required String passwordConfirmation,
+    required int roleId,
+    required int authorityId,
+    required int departmentId,
+  }) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.adminCreateUser,
+        data: {
+          'name': name,
+          'email': email,
+          'username': username,
+          'phone': phone,
+          'password': password,
+          'password_confirmation': passwordConfirmation,
+          'role_id': roleId,
+          'authority_id': authorityId,
+          'department_id': departmentId,
+        },
+      );
+      final data = response.data;
+      if (data is Map) {
+        final map = Map<String, dynamic>.from(data);
+        final raw = map['data'] ?? map;
+        return EmployeeModel.fromJson(Map<String, dynamic>.from(raw as Map));
+      }
+      throw 'صيغة البيانات غير متوقعة';
+    } on DioException catch (e) {
+      throw BaseClient.handleError(e);
+    }
+  }
+
+  // ──────────────────────────────────────────────
+  String _mapStatus(String status) {
+    switch (status.toLowerCase()) {
+      case 'new':
+      case 'pending':
+        return ApiConstants.statusPending;
+      case 'in_progress':
+      case 'in progress':
+        return ApiConstants.statusInProgress;
+      case 'closed':
+      case 'resolved':
+        return ApiConstants.statusResolved;
+      default:
+        return status;
+    }
+  }
+
+  List<ComplaintModel> _parseList(dynamic data) {
+    if (data == null) return [];
+    List<dynamic> raw = [];
+    if (data is Map) {
+      final map = Map<String, dynamic>.from(data);
+      if (map['data'] is List)
+        raw = map['data'] as List;
+      else if (map['complaints'] is List)
+        raw = map['complaints'] as List;
+    } else if (data is List) {
+      raw = data;
+    }
+    return raw
+        .whereType<Map>()
+        .map((e) => ComplaintModel.fromJson(Map<String, dynamic>.from(e)))
+        .toList();
+  }
+}

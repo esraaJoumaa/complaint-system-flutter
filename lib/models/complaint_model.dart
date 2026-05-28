@@ -2,6 +2,7 @@ class ComplaintModel {
   final int? id;
   final String? complainNumber;
   final int userId;
+  final int? userScore;
   final int? authorityId;
   final int departmentId;
   final int? currentDepartmentId;
@@ -24,6 +25,7 @@ class ComplaintModel {
     this.id,
     this.complainNumber,
     required this.userId,
+    this.userScore,
     required this.authorityId,
     required this.departmentId,
     required this.currentDepartmentId,
@@ -121,6 +123,10 @@ class ComplaintModel {
           _readNullableInt(json, 'id'),
       complainNumber: _readNullableString(json, 'complain_number'),
       userId: _readInt(json, 'user_id'),
+      userScore:
+          _readNullableInt(json, 'user_score') ??
+          _readNullableInt(json, 'userScore') ??
+          _readNullableInt(json, 'score'),
       authorityId:
           _readNullableInt(json, 'authority_id') ??
           _readNullableInt(json, 'auth_id'),
@@ -148,6 +154,7 @@ class ComplaintModel {
     'id': id,
     'complain_number': complainNumber,
     'user_id': userId,
+    'user_score': userScore,
     'authority_id': authorityId,
     'department_id': departmentId,
     'current_department_id': currentDepartmentId,

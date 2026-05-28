@@ -2,18 +2,17 @@ import 'package:get/get.dart';
 
 import '../../models/complaint_model.dart';
 import '../../services/complaint_service.dart';
+import '../../core/constants/api_constants.dart';
 import '../../core/routes/app_routes.dart';
 
 class EmployeeController extends GetxController {
   final ComplaintService _service = ComplaintService();
 
-  // ── الحالات ──
-  final RxBool isLoading        = false.obs;
-  final RxBool isLoadingAction  = false.obs;
-  final RxString errorMessage   = ''.obs;
-  final RxString currentStatus  = 'new'.obs;
+  final RxBool isLoading = false.obs;
+  final RxBool isLoadingAction = false.obs;
+  final RxString errorMessage = ''.obs;
+  final RxString currentStatus = 'new'.obs;
 
-  // ── البيانات ──
   final RxList<ComplaintModel> complaints = <ComplaintModel>[].obs;
   final Rx<ComplaintModel?> selectedComplaint = Rx<ComplaintModel?>(null);
 
@@ -49,40 +48,37 @@ class EmployeeController extends GetxController {
   }
 
   // ──────────────────────────────────────────────
-  // فتح الشكوى — تنتقل تلقائياً لـ in_progress إن كانت جديدة
+  // فتح الشكوى
   // ──────────────────────────────────────────────
   Future<void> openAndProcessComplaint(ComplaintModel complaint) async {
     selectedComplaint.value = complaint;
 
-    if (complaint.status == 'new' || complaint.status == 'pending') {
+    if (complaint.status.toLowerCase() == 'pending') {
       try {
         await _service.updateComplaintStatus(complaint.id!, 'in_progress');
-        selectedComplaint.value = _copyWithStatus(complaint, 'in_progress');
-      } catch (_) {
-      }
+        selectedComplaint.value = _copyWithStatus(
+          complaint,
+          ApiConstants.statusInProgress,
+        );
+      } catch (_) {}
     }
 
-    Get.toNamed(
-      Routes.COMPLAINT_DETAILS,
-      arguments: selectedComplaint.value,
-    );
+    Get.toNamed(Routes.COMPLAINT_DETAILS, arguments: selectedComplaint.value);
   }
 
   // ──────────────────────────────────────────────
-  // إغلاق الشكوى مع الرد الرسمي
+  // إغلاق الشكوى
   // ──────────────────────────────────────────────
   Future<void> closeComplaint(int id, String responseText) async {
     if (responseText.trim().isEmpty) {
       _showError('يرجى كتابة الرد قبل الإغلاق');
       return;
     }
-
     try {
       isLoadingAction(true);
       await _service.respondToComplaint(id, responseText);
-
-      Get.back(); // إغلاق الـ Dialog
-      Get.back(); // العودة لقائمة الشكاوي
+      Get.back(); // إغلاق Dialog
+      Get.back(); // العودة للقائمة
       _showSuccess('تم إغلاق الشكوى وإشعار المواطن بنجاح');
       await fetchComplaints();
     } catch (e) {
@@ -96,16 +92,21 @@ class EmployeeController extends GetxController {
   // فتح الشات
   // ──────────────────────────────────────────────
   void openChat(ComplaintModel complaint) {
-    Get.toNamed(Routes.CHAT, arguments: {
-      'complaint_id': complaint.id,
-      'complaint_title': complaint.title,
-    });
+    Get.toNamed(
+      Routes.CHAT,
+      arguments: {
+        'complaint_id': complaint.id,
+        'complaint_title': complaint.title,
+      },
+    );
   }
 
+  // ──────────────────────────────────────────────
 
   ComplaintModel _copyWithStatus(ComplaintModel c, String status) {
     return ComplaintModel(
       id: c.id,
+      complainNumber: c.complainNumber,
       userId: c.userId,
       authorityId: c.authorityId,
       departmentId: c.departmentId,
@@ -122,24 +123,22 @@ class EmployeeController extends GetxController {
       assignedLevel: c.assignedLevel,
       canChat: c.canChat,
       currentLevelName: c.currentLevelName,
+      levelName: c.levelName,
+      priority: c.priority,
     );
   }
 
-  void _showSuccess(String message) {
-    Get.snackbar(
-      'نجاح ✓',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 3),
-    );
-  }
+  void _showSuccess(String message) => Get.snackbar(
+    'نجاح ✓',
+    message,
+    snackPosition: SnackPosition.BOTTOM,
+    duration: const Duration(seconds: 3),
+  );
 
-  void _showError(String message) {
-    Get.snackbar(
-      'خطأ',
-      message,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: const Duration(seconds: 3),
-    );
-  }
+  void _showError(String message) => Get.snackbar(
+    'خطأ',
+    message,
+    snackPosition: SnackPosition.BOTTOM,
+    duration: const Duration(seconds: 3),
+  );
 }

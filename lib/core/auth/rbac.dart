@@ -3,37 +3,49 @@ import 'package:get_storage/get_storage.dart';
 class Rbac {
   Rbac._();
 
-  // تعريف الأدوار الرسمية التي لها صلاحيات الدخول للوحات التحكم
-  static const String _roleManager = 'manager';
-  static const String _roleEmployee = 'employee';
-  static const String _roleOfficial = 'official';
-  static const String _roleCitizen = 'citizen';
 
-  // استخراج الدور الحالي للمستخدم من الذاكرة الدائمة
+  // ──────────────────────────────────────────────
+  static Map<String, dynamic>? _userData() {
+    final raw = GetStorage().read('user_data');
+    if (raw == null) return null;
+    try { return Map<String, dynamic>.from(raw as Map); }
+    catch (_) { return null; }
+  }
+
   static String? currentRole() {
-    final dynamic raw = GetStorage().read('user_data');
-    if (raw is! Map) return null;
+    final role = _userData()?['role_name']?.toString().trim();
+    return (role == null || role.isEmpty) ? null : role.toLowerCase();
+  }
 
-    final Map<String, dynamic> data = Map<String, dynamic>.from(raw);
 
-    return data['role_name']?.toString().toLowerCase().trim();
+  // ──────────────────────────────────────────────
+
+  /// مدير الجهة (role_id=2, name="manager")
+  static bool isAuthorityManager() => currentRole() == 'manager';
+
+  /// مدير القسم (role_id=3, name="dept_manager")
+  static bool isDeptManager() => currentRole() == 'dept_manager';
+
+  /// الموظف (role_id=4, name="employee")
+  static bool isEmployee() => currentRole() == 'employee';
+
+  /// مدير النظام (role_id=1, name="admin")
+  static bool isAdmin() => currentRole() == 'admin';
+
+  /// المواطن (role_id=5, name="user")
+  static bool isCitizen() {
+    final r = currentRole();
+    return r == 'user' || r == null;
   }
 
   static bool isOfficialUser() {
-    final role = currentRole();
-    return role == _roleManager ||
-        role == _roleEmployee ||
-        role == _roleOfficial;
+    final r = currentRole();
+    return r == 'admin' ||
+        r == 'manager' ||
+        r == 'dept_manager' ||
+        r == 'employee';
   }
 
-  static bool isManager() => currentRole() == _roleManager;
-  static bool isEmployee() => currentRole() == _roleEmployee;
-  static bool isAuthorityOfficial() => currentRole() == _roleOfficial;
-  static bool isCitizen() =>
-      currentRole() == _roleCitizen || currentRole() == null;
-
-  static bool hasAccess(List<String> allowedRoles) {
-    final role = currentRole();
-    return allowedRoles.contains(role);
-  }
+  static bool hasAccess(List<String> roles) =>
+      roles.contains(currentRole());
 }

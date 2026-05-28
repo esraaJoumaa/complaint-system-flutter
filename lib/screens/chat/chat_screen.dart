@@ -7,8 +7,8 @@ import '../../core/auth/rbac.dart';
 class ChatScreen extends StatelessWidget {
   ChatScreen({super.key});
 
-  static const Color _primary    = Color(0xFF00838F);
-  static const Color _dark       = Color(0xFF006064);
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
   static const Color _background = Color(0xFFE0F7FA);
 
   final ChatController controller = Get.put(ChatController());
@@ -21,66 +21,68 @@ class ChatScreen extends StatelessWidget {
       body: Column(
         children: [
           _buildClosedBanner(),
-
           Expanded(child: _buildMessagesList()),
-
           _buildInputArea(),
         ],
       ),
     );
   }
 
-
+  // ──────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: _dark,
       foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
-      title: Obx(() => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                controller.complaintTitle,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+      title: Obx(
+        () => Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              controller.complaintTitle,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
               ),
-              Text(
-                controller.chatIsClosed.value ? 'مغلقة' : 'نشطة',
-                style: TextStyle(
-                  color: controller.chatIsClosed.value
-                      ? Colors.orange.shade200
-                      : Colors.greenAccent.shade100,
-                  fontSize: 11,
-                ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            Text(
+              controller.chatIsClosed.value ? 'مغلقة' : 'نشطة',
+              style: TextStyle(
+                color: controller.chatIsClosed.value
+                    ? Colors.orange.shade200
+                    : Colors.greenAccent.shade100,
+                fontSize: 11,
               ),
-            ],
-          )),
+            ),
+          ],
+        ),
+      ),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
         onPressed: () => Get.back(),
       ),
       actions: [
+        // زر فتح/إغلاق الشات — للمسؤولين فقط
         if (Rbac.isOfficialUser())
-          Obx(() => IconButton(
-                icon: Icon(
-                  controller.chatIsClosed.value
-                      ? Icons.lock_open_rounded
-                      : Icons.lock_rounded,
-                  color: Colors.white,
-                ),
-                tooltip: controller.chatIsClosed.value
-                    ? 'فتح المحادثة'
-                    : 'إغلاق المحادثة',
-                onPressed: () => controller
-                    .toggleChatStatus(!controller.chatIsClosed.value),
-              )),
-        // زر تحديث
+          Obx(
+            () => IconButton(
+              icon: Icon(
+                controller.chatIsClosed.value
+                    ? Icons.lock_open_rounded
+                    : Icons.lock_rounded,
+                color: Colors.white,
+              ),
+              tooltip: controller.chatIsClosed.value
+                  ? 'فتح المحادثة'
+                  : 'إغلاق المحادثة',
+              onPressed: () =>
+                  controller.toggleChatStatus(!controller.chatIsClosed.value),
+            ),
+          ),
         IconButton(
           icon: const Icon(Icons.refresh_rounded, color: Colors.white),
           onPressed: controller.refresh,
@@ -99,7 +101,7 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
-
+  // ──────────────────────────────────────────────
   Widget _buildClosedBanner() {
     return Obx(() {
       if (!controller.chatIsClosed.value) return const SizedBox.shrink();
@@ -126,13 +128,11 @@ class ChatScreen extends StatelessWidget {
     });
   }
 
-
+  // ──────────────────────────────────────────────
   Widget _buildMessagesList() {
     return Obx(() {
       if (controller.isLoading.value) {
-        return const Center(
-          child: CircularProgressIndicator(color: _primary),
-        );
+        return const Center(child: CircularProgressIndicator(color: _primary));
       }
 
       final err = controller.error.value;
@@ -141,8 +141,11 @@ class ChatScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.cloud_off_rounded,
-                  color: Colors.red.shade300, size: 48),
+              Icon(
+                Icons.cloud_off_rounded,
+                color: Colors.red.shade300,
+                size: 48,
+              ),
               const SizedBox(height: 12),
               Text(
                 err,
@@ -168,8 +171,11 @@ class ChatScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.chat_bubble_outline_rounded,
-                  color: _primary.withOpacity(0.3), size: 56),
+              Icon(
+                Icons.chat_bubble_outline_rounded,
+                color: _primary.withOpacity(0.3),
+                size: 56,
+              ),
               const SizedBox(height: 12),
               const Text(
                 'لا توجد رسائل بعد',
@@ -191,8 +197,13 @@ class ChatScreen extends StatelessWidget {
         itemCount: controller.messages.length,
         itemBuilder: (_, i) {
           final m = controller.messages[i];
-          final bool isMe = m.senderType ==
-              (Rbac.isOfficialUser() ? 'official' : 'citizen');
+
+          final bool isMe;
+          if (Rbac.isOfficialUser()) {
+            isMe = m.senderType == 'official';
+          } else {
+            isMe = m.senderType == 'citizen' || m.senderType == 'user';
+          }
 
           return _MessageBubble(
             text: m.message,
@@ -207,7 +218,7 @@ class ChatScreen extends StatelessWidget {
     });
   }
 
-
+  // ──────────────────────────────────────────────
   Widget _buildInputArea() {
     return Obx(() {
       final bool canChat =
@@ -227,44 +238,45 @@ class ChatScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Obx(() => AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 46,
-                  height: 46,
-                  decoration: BoxDecoration(
-                    color: canChat && !controller.isSending.value
-                        ? _primary
-                        : Colors.grey.shade300,
-                    shape: BoxShape.circle,
-                    boxShadow: canChat
-                        ? [
-                            BoxShadow(
-                              color: _primary.withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 3),
-                            )
-                          ]
-                        : [],
-                  ),
-                  child: controller.isSending.value
-                      ? const Padding(
-                          padding: EdgeInsets.all(12),
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
+            Obx(
+              () => AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: canChat && !controller.isSending.value
+                      ? _primary
+                      : Colors.grey.shade300,
+                  shape: BoxShape.circle,
+                  boxShadow: canChat
+                      ? [
+                          BoxShadow(
+                            color: _primary.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
                           ),
-                        )
-                      : IconButton(
-                          onPressed: canChat ? controller.send : null,
-                          icon: const Icon(
-                            Icons.send_rounded,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                        ]
+                      : [],
+                ),
+                child: controller.isSending.value
+                    ? const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
                         ),
-                )),
+                      )
+                    : IconButton(
+                        onPressed: canChat ? controller.send : null,
+                        icon: const Icon(
+                          Icons.send_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                      ),
+              ),
+            ),
             const SizedBox(width: 10),
-
             Expanded(
               child: TextField(
                 controller: controller.inputController,
@@ -273,10 +285,7 @@ class ChatScreen extends StatelessWidget {
                 textDirection: TextDirection.rtl,
                 maxLines: 4,
                 minLines: 1,
-                style: const TextStyle(
-                  color: Color(0xFF37474F),
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Color(0xFF37474F), fontSize: 14),
                 decoration: InputDecoration(
                   hintText: canChat
                       ? 'اكتب رسالتك...'
@@ -311,7 +320,7 @@ class ChatScreen extends StatelessWidget {
   }
 }
 
-
+// ══════════════════════════════════════════════════════
 class _MessageBubble extends StatelessWidget {
   final String text;
   final bool isMe;
@@ -354,8 +363,9 @@ class _MessageBubble extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment:
-              isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isMe
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             if (!isMe && senderName.isNotEmpty)
               Padding(

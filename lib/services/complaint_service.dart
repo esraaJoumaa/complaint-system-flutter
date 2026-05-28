@@ -7,12 +7,8 @@ import 'dio_client.dart';
 
 class ComplaintService {
   ComplaintService({Dio? dio}) : _dio = dio ?? DioClient.instance.dio;
-
   final Dio _dio;
 
-  // ──────────────────────────────────────────────
-  // 1. تقديم شكوى جديدة (المواطن)
-  // ──────────────────────────────────────────────
   Future<ComplaintModel> storeComplaint({
     required String fullName,
     required String title,
@@ -52,16 +48,12 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 2. جلب الشكاوي حسب الحالة
-  // ──────────────────────────────────────────────
   Future<List<ComplaintModel>> getComplaintsByStatus(String status) async {
     try {
-      final String backendStatus = _mapStatusToBackend(status);
       final response = await _dio.get<dynamic>(
-        ApiConstants.filterComplaints(backendStatus),
+        ApiConstants.filterComplaints(_mapStatus(status)),
       );
-      return _parseComplaintList(response.data);
+      return _parseList(response.data);
     } on DioException catch (e) {
       throw Exception(BaseClient.handleError(e));
     } catch (e) {
@@ -69,13 +61,10 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 3. جلب جميع الشكاوي
-  // ──────────────────────────────────────────────
   Future<List<ComplaintModel>> getAllComplaints() async {
     try {
-      final response = await _dio.get<dynamic>(ApiConstants.allComplaints);
-      return _parseComplaintList(response.data);
+      final response = await _dio.get<dynamic>(ApiConstants.managerComplaints);
+      return _parseList(response.data);
     } on DioException catch (e) {
       throw Exception(BaseClient.handleError(e));
     } catch (e) {
@@ -83,9 +72,6 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 4. جلب تفاصيل شكوى بالـ ID
-  // ──────────────────────────────────────────────
   Future<ComplaintModel> getComplaintById(int id) async {
     try {
       final response = await _dio.get<dynamic>(ApiConstants.viewComplaint(id));
@@ -100,14 +86,11 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 5. تغيير حالة الشكوى
-  // ──────────────────────────────────────────────
   Future<bool> updateComplaintStatus(int id, String status) async {
     try {
       final response = await _dio.post<dynamic>(
         ApiConstants.updateStatus(id),
-        data: {'status': _mapStatusToBackend(status)},
+        data: {'status': _mapStatus(status)},
       );
       final data = response.data;
       if (data is Map) {
@@ -121,14 +104,15 @@ class ComplaintService {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // 6. الرد الرسمي وإغلاق الشكوى
-  // ──────────────────────────────────────────────
   Future<bool> respondToComplaint(int id, String reply) async {
     try {
       final response = await _dio.post<dynamic>(
         ApiConstants.respondToComplaint(id),
-        data: {'reply': reply},
+        data: {
+          'reply': reply,
+          'status': ApiConstants.statusResolved, // "Resolved"
+          'is_valid': true,
+        },
       );
       final data = response.data;
       if (data is Map) {
@@ -158,32 +142,32 @@ class ComplaintService {
     }
   }
 
-  String _mapStatusToBackend(String status) {
+  // ──────────────────────────────────────────────
+  String _mapStatus(String status) {
     switch (status.toLowerCase()) {
       case 'new':
       case 'pending':
-        return ApiConstants.statusPending; // "Pending"
+        return ApiConstants.statusPending;
       case 'in_progress':
       case 'in progress':
-        return ApiConstants.statusInProgress; // "In Progress"
+        return ApiConstants.statusInProgress;
       case 'closed':
       case 'resolved':
-        return ApiConstants.statusResolved; // "Resolved"
+        return ApiConstants.statusResolved;
       default:
         return status;
     }
   }
 
-  List<ComplaintModel> _parseComplaintList(dynamic data) {
+  List<ComplaintModel> _parseList(dynamic data) {
     if (data == null) return [];
     List<dynamic> rawList = [];
     if (data is Map) {
       final map = Map<String, dynamic>.from(data);
-      if (map['data'] is List) {
+      if (map['data'] is List)
         rawList = map['data'] as List;
-      } else if (map['complaints'] is List) {
+      else if (map['complaints'] is List)
         rawList = map['complaints'] as List;
-      }
     } else if (data is List) {
       rawList = data;
     }

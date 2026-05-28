@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/department_manager/department_manager_controller.dart';
+import '../../controllers/rating_controller.dart';
 import '../../models/complaint_model.dart';
-import '../../core/routes/app_routes.dart';
+import '../shared/reject_dialog.dart';
+import '../shared/widgets/score_badge.dart';
 
 /// تستقبل [ComplaintModel] كـ arguments
 class DepartmentComplaintDetailScreen extends StatefulWidget {
@@ -16,9 +18,8 @@ class DepartmentComplaintDetailScreen extends StatefulWidget {
 
 class _DepartmentComplaintDetailScreenState
     extends State<DepartmentComplaintDetailScreen> {
-  // ── الألوان ──
-  static const Color _primary    = Color(0xFF00838F);
-  static const Color _dark       = Color(0xFF006064);
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
   static const Color _background = Color(0xFFE0F7FA);
 
   final TextEditingController _replyController = TextEditingController();
@@ -31,7 +32,7 @@ class _DepartmentComplaintDetailScreenState
   void initState() {
     super.initState();
     _controller = Get.find<DepartmentManagerController>();
-    _complaint  = Get.arguments as ComplaintModel;
+    _complaint = Get.arguments as ComplaintModel;
   }
 
   @override
@@ -47,7 +48,6 @@ class _DepartmentComplaintDetailScreenState
       appBar: _buildAppBar(),
       body: Column(
         children: [
-          // ── المحتوى القابل للتمرير ──
           Expanded(
             child: SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
@@ -72,7 +72,7 @@ class _DepartmentComplaintDetailScreenState
                     const SizedBox(height: 20),
                     _buildReplySection(),
                   ],
-                  const SizedBox(height: 100), // مساحة للأزرار السفلية
+                  const SizedBox(height: 100),
                 ],
               ),
             ),
@@ -83,6 +83,7 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
+  // ──────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: _dark,
@@ -104,10 +105,18 @@ class _DepartmentComplaintDetailScreenState
       actions: [
         if (_complaint.canChat)
           IconButton(
-            icon: const Icon(Icons.chat_bubble_outline_rounded,
-                color: Colors.white),
-            onPressed: () => _openChat(),
+            icon: const Icon(
+              Icons.chat_bubble_outline_rounded,
+              color: Colors.white,
+            ),
+            onPressed: _openChat,
             tooltip: 'فتح المحادثة',
+          ),
+        if (_complaint.status != 'closed' && _complaint.status != 'resolved')
+          IconButton(
+            icon: const Icon(Icons.block_rounded, color: Color(0xFFEF9A9A)),
+            onPressed: _openRejectDialog,
+            tooltip: 'رفض الشكوى',
           ),
       ],
       bottom: PreferredSize(
@@ -122,11 +131,11 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-
+  // ──────────────────────────────────────────────
   Widget _buildStatusBanner() {
     final color = _statusColor(_complaint.status);
     final label = _statusLabel(_complaint.status);
-    final icon  = _statusIcon(_complaint.status);
+    final icon = _statusIcon(_complaint.status);
 
     return Container(
       width: double.infinity,
@@ -163,8 +172,6 @@ class _DepartmentComplaintDetailScreenState
   }
 
   // ──────────────────────────────────────────────
-  // بطاقة المعلومات الأساسية
-  // ──────────────────────────────────────────────
   Widget _buildInfoCard() {
     return _SectionCard(
       title: 'معلومات الشكوى',
@@ -174,6 +181,19 @@ class _DepartmentComplaintDetailScreenState
         _InfoRow(
           label: 'مقدم الشكوى',
           value: _complaint.fullName ?? 'غير محدد',
+        ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ScoreBadge(score: _complaint.userScore ?? 0),
+              const Text(
+                'سكور المواطن',
+                style: TextStyle(color: Color(0xFF90A4AE), fontSize: 13),
+              ),
+            ],
+          ),
         ),
         _InfoRow(
           label: 'المستوى الحالي',
@@ -188,9 +208,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  // ──────────────────────────────────────────────
-  // بطاقة الوصف
-  // ──────────────────────────────────────────────
   Widget _buildDescriptionCard() {
     return _SectionCard(
       title: 'تفاصيل الشكوى',
@@ -217,9 +234,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  // ──────────────────────────────────────────────
-  // بطاقة المرفقات
-  // ──────────────────────────────────────────────
   Widget _buildAttachmentsCard() {
     return _SectionCard(
       title: 'المرفقات',
@@ -231,9 +245,7 @@ class _DepartmentComplaintDetailScreenState
           alignment: WrapAlignment.end,
           children: _complaint.attachments!.map((url) {
             return GestureDetector(
-              onTap: () {
-                // يمكن فتح الرابط لاحقاً
-              },
+              onTap: () {},
               child: Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -267,7 +279,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-
   Widget _buildMetaCard() {
     return _SectionCard(
       title: 'التواريخ',
@@ -292,9 +303,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  // ──────────────────────────────────────────────
-  // قسم الرد الرسمي
-  // ──────────────────────────────────────────────
   Widget _buildReplySection() {
     return Form(
       key: _formKey,
@@ -318,15 +326,11 @@ class _DepartmentComplaintDetailScreenState
               fillColor: const Color(0xFFF5FAFB),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _primary.withOpacity(0.2),
-                ),
+                borderSide: BorderSide(color: _primary.withOpacity(0.2)),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(
-                  color: _primary.withOpacity(0.2),
-                ),
+                borderSide: BorderSide(color: _primary.withOpacity(0.2)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
@@ -339,12 +343,10 @@ class _DepartmentComplaintDetailScreenState
               contentPadding: const EdgeInsets.all(16),
             ),
             validator: (value) {
-              if (value == null || value.trim().isEmpty) {
+              if (value == null || value.trim().isEmpty)
                 return 'يرجى كتابة الرد قبل الإغلاق';
-              }
-              if (value.trim().length < 10) {
+              if (value.trim().length < 10)
                 return 'الرد قصير جداً — أضف المزيد من التفاصيل';
-              }
               return null;
             },
           ),
@@ -353,10 +355,10 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-
+  // ──────────────────────────────────────────────
   Widget _buildBottomActions() {
-    final isClosed = _complaint.status == 'closed' ||
-        _complaint.status == 'resolved';
+    final isClosed =
+        _complaint.status == 'closed' || _complaint.status == 'resolved';
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
@@ -372,33 +374,47 @@ class _DepartmentComplaintDetailScreenState
       ),
       child: isClosed
           ? _buildClosedState()
-          : Row(
+          : Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // زر فتح الشات
-                if (_complaint.canChat) ...[
-                  Expanded(
-                    flex: 2,
-                    child: _ActionButton(
-                      label: 'محادثة',
-                      icon: Icons.chat_bubble_outline_rounded,
-                      color: const Color(0xFF0097A7),
-                      outlined: true,
-                      onTap: _openChat,
+                Row(
+                  children: [
+                    if (_complaint.canChat) ...[
+                      Expanded(
+                        flex: 2,
+                        child: _ActionButton(
+                          label: 'محادثة',
+                          icon: Icons.chat_bubble_outline_rounded,
+                          color: const Color(0xFF0097A7),
+                          outlined: true,
+                          onTap: _openChat,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                    ],
+                    Expanded(
+                      flex: 3,
+                      child: Obx(
+                        () => _ActionButton(
+                          label: 'إغلاق الشكوى',
+                          icon: Icons.check_circle_outline_rounded,
+                          color: _dark,
+                          isLoading: _controller.isLoadingAction.value,
+                          onTap: _onCloseComplaint,
+                        ),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                ],
-                // زر إغلاق الشكوى
-                Expanded(
-                  flex: 3,
-                  child: Obx(
-                    () => _ActionButton(
-                      label: 'إغلاق الشكوى',
-                      icon: Icons.check_circle_outline_rounded,
-                      color: _dark,
-                      isLoading: _controller.isLoadingAction.value,
-                      onTap: _onCloseComplaint,
-                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                SizedBox(
+                  width: double.infinity,
+                  child: _ActionButton(
+                    label: 'رفض الشكوى ككاذبة',
+                    icon: Icons.block_rounded,
+                    color: const Color(0xFFD32F2F),
+                    outlined: true,
+                    onTap: _openRejectDialog,
                   ),
                 ),
               ],
@@ -406,7 +422,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  /// حالة الشكوى المغلقة
   Widget _buildClosedState() {
     return Container(
       width: double.infinity,
@@ -434,10 +449,8 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-
   void _onCloseComplaint() {
     if (!_formKey.currentState!.validate()) return;
-
     Get.dialog(
       _ConfirmDialog(
         title: 'تأكيد إغلاق الشكوى',
@@ -445,7 +458,7 @@ class _DepartmentComplaintDetailScreenState
             'سيتم إغلاق الشكوى وإرسال إشعار للمواطن بالرد الرسمي.\nهل أنت متأكد؟',
         confirmLabel: 'نعم، أغلق الشكوى',
         onConfirm: () {
-          Get.back(); // إغلاق الـ Dialog
+          Get.back();
           _controller.closeComplaint(
             _complaint.id!,
             _replyController.text.trim(),
@@ -455,10 +468,17 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  void _openChat() {
-    _controller.openChat(_complaint);
-  }
+  void _openChat() => _controller.openChat(_complaint);
 
+  void _openRejectDialog() {
+    if (!Get.isRegistered<RatingController>()) {
+      Get.lazyPut<RatingController>(() => RatingController(), fenix: true);
+    }
+    showDialog(
+      context: context,
+      builder: (_) => RejectComplaintDialog(complainId: _complaint.id.toString()),
+    );
+  }
 
   Color _statusColor(String status) {
     switch (status) {
@@ -471,7 +491,7 @@ class _DepartmentComplaintDetailScreenState
       case 'resolved':
         return const Color(0xFF26A69A);
       case 'rejected':
-        return Colors.red.shade400;
+        return const Color(0xFFD32F2F);
       default:
         return const Color(0xFF90A4AE);
     }
@@ -511,18 +531,18 @@ class _DepartmentComplaintDetailScreenState
     }
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
-  }
+  String _formatDate(DateTime date) =>
+      '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
 }
+
+// ══════════════════════════════════════════════════════
 
 class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<Widget> children;
-
   static const Color _primary = Color(0xFF00838F);
-  static const Color _dark    = Color(0xFF006064);
+  static const Color _dark = Color(0xFF006064);
 
   const _SectionCard({
     required this.title,
@@ -548,7 +568,6 @@ class _SectionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          // رأس البطاقة
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
@@ -592,11 +611,7 @@ class _InfoRow extends StatelessWidget {
   final String value;
   final Color? valueColor;
 
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
+  const _InfoRow({required this.label, required this.value, this.valueColor});
 
   @override
   Widget build(BuildContext context) {
@@ -606,7 +621,6 @@ class _InfoRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // القيمة
           Flexible(
             child: Text(
               value,
@@ -619,13 +633,9 @@ class _InfoRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 16),
-          // التسمية
           Text(
             label,
-            style: const TextStyle(
-              color: Color(0xFF90A4AE),
-              fontSize: 13,
-            ),
+            style: const TextStyle(color: Color(0xFF90A4AE), fontSize: 13),
           ),
         ],
       ),
@@ -710,9 +720,8 @@ class _ConfirmDialog extends StatelessWidget {
   final String message;
   final String confirmLabel;
   final VoidCallback onConfirm;
-
   static const Color _primary = Color(0xFF00838F);
-  static const Color _dark    = Color(0xFF006064);
+  static const Color _dark = Color(0xFF006064);
 
   const _ConfirmDialog({
     required this.title,
@@ -766,7 +775,6 @@ class _ConfirmDialog extends StatelessWidget {
             const SizedBox(height: 24),
             Row(
               children: [
-                // زر إلغاء
                 Expanded(
                   child: GestureDetector(
                     onTap: () => Get.back(),
@@ -789,7 +797,6 @@ class _ConfirmDialog extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                // زر تأكيد
                 Expanded(
                   flex: 2,
                   child: GestureDetector(
