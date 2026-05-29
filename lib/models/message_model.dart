@@ -5,7 +5,7 @@ class MessageModel {
   final String message;
   final DateTime? sentAt;
 
-  final String senderType; // 'official' أو 'citizen'
+  final String senderType;
   final String? senderName;
 
   const MessageModel({

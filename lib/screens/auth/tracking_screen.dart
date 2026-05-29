@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/tracking_controller.dart';
-import '../../controllers/rating_controller.dart';
 import '../../core/routes/app_routes.dart';
-import '../rating/rating_screen.dart';
 
 class TrackingScreen extends StatelessWidget {
   TrackingScreen({super.key});
@@ -57,6 +55,7 @@ class TrackingScreen extends StatelessWidget {
           children: [
             _buildSearchSection(),
             const SizedBox(height: 20),
+
             Expanded(
               child: Obx(() {
                 if (controller.isLoading.value) {
@@ -74,27 +73,11 @@ class TrackingScreen extends StatelessWidget {
                 return ListView(
                   physics: const BouncingScrollPhysics(),
                   children: [
-                    // ── بطاقة المعلومات ──
                     _buildComplaintCard(complaint),
                     const SizedBox(height: 16),
-
-                    // ── سكور المواطن ──
-                    _buildUserScoreCard(complaint),
-                    const SizedBox(height: 16),
-
-                    // ── Stepper الحالة ──
                     _buildStatusStepper(complaint.statusStepIndex),
                     const SizedBox(height: 16),
-
-                    // ── زر المحادثة ──
-                    if (complaint.canChat) ...[
-                      _buildChatButton(complaint),
-                      const SizedBox(height: 12),
-                    ],
-
-                    // ── زر التقييم: يظهر فقط إذا الشكوى مغلقة ولم يقيّم بعد ──
-                    if (_isResolved(complaint.status))
-                      _buildRatingButton(complaint),
+                    if (complaint.canChat) _buildChatButton(complaint),
                   ],
                 );
               }),
@@ -105,7 +88,6 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildSearchSection() {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -260,7 +242,6 @@ class TrackingScreen extends StatelessWidget {
 
   void _onSearch() => controller.trackById(idController.text.trim());
 
-  // ──────────────────────────────────────────────
   Widget _buildInitialState() {
     return Center(
       child: Column(
@@ -298,7 +279,6 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildComplaintCard(complaint) {
     return Container(
       width: double.infinity,
@@ -370,145 +350,6 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  Widget _buildUserScoreCard(complaint) {
-    final int score = complaint.userScore ?? 0;
-
-    final Color scoreColor;
-    final String scoreLabel;
-    final IconData scoreIcon;
-    final double fillPercent = (score / 100).clamp(0.0, 1.0);
-
-    if (score >= 80) {
-      scoreColor = const Color(0xFF00838F);
-      scoreLabel = 'مستخدم موثوق ✅';
-      scoreIcon = Icons.verified_user_rounded;
-    } else if (score >= 50) {
-      scoreColor = const Color(0xFF43A047);
-      scoreLabel = 'مستوى جيد 👍';
-      scoreIcon = Icons.thumb_up_rounded;
-    } else if (score >= 20) {
-      scoreColor = const Color(0xFFFFA000);
-      scoreLabel = 'يحتاج تحسين ⚠️';
-      scoreIcon = Icons.warning_amber_rounded;
-    } else {
-      scoreColor = const Color(0xFFE53935);
-      scoreLabel = 'سكور منخفض ❗';
-      scoreIcon = Icons.error_outline_rounded;
-    }
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: scoreColor.withOpacity(0.1),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          // ── العنوان ──
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const Text(
-                'سكورك لدى المنصة',
-                style: TextStyle(
-                  color: Color(0xFF006064),
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Icon(scoreIcon, color: scoreColor, size: 18),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // التسمية
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: scoreColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  scoreLabel,
-                  style: TextStyle(
-                    color: scoreColor,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              // الرقم
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '$score',
-                    style: TextStyle(
-                      color: scoreColor,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                      height: 1,
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 6, right: 2),
-                    child: Text(
-                      '/100',
-                      style: TextStyle(color: Color(0xFF90A4AE), fontSize: 14),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // ── شريط التقدم ──
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: fillPercent,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFECEFF1),
-              valueColor: AlwaysStoppedAnimation<Color>(scoreColor),
-            ),
-          ),
-          const SizedBox(height: 10),
-
-          // ── ملاحظة توضيحية ──
-          const Text(
-            'يرتفع سكورك عند حل شكاواك الصادقة، وينخفض عند تقديم شكاوى كاذبة.',
-            textAlign: TextAlign.right,
-            style: TextStyle(
-              color: Color(0xFF90A4AE),
-              fontSize: 11,
-              height: 1.5,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ──────────────────────────────────────────────
   Widget _buildStatusStepper(int currentStep) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
@@ -588,7 +429,6 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildChatButton(complaint) {
     return GestureDetector(
       onTap: () => Get.toNamed(
@@ -639,91 +479,6 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  Widget _buildRatingButton(complaint) {
-    // تحقق هل قيّم مسبقاً من خلال RatingController
-    final ratingCtrl = Get.isRegistered<RatingController>()
-        ? Get.find<RatingController>()
-        : Get.put(RatingController());
-
-    return Obx(() {
-      final alreadyRated =
-          ratingCtrl.hasRated.value &&
-          ratingCtrl.ratingResponse.value?.rating.complainId ==
-              complaint.id.toString();
-
-      if (alreadyRated) {
-        // ── حالة: تم التقييم ──
-        return Container(
-          width: double.infinity,
-          height: 52,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE0F7FA),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _primary.withOpacity(0.3)),
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'تم إرسال تقييمك، شكراً! ⭐',
-                style: TextStyle(
-                  color: _primary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(width: 8),
-              Icon(Icons.check_circle_rounded, color: _primary, size: 18),
-            ],
-          ),
-        );
-      }
-
-      return GestureDetector(
-        onTap: () => Get.toNamed(
-          Routes.RATING,
-          arguments: {
-            'complainId': complaint.id.toString(),
-            'authorityName': complaint.currentLevelName ?? 'الجهة',
-          },
-        ),
-        child: Container(
-          width: double.infinity,
-          height: 52,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFFF8E1),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFFFB300), width: 1.5),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFFB300).withOpacity(0.2),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
-          ),
-          child: const Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'قيّم الخدمة التي تلقيتها',
-                style: TextStyle(
-                  color: Color(0xFFFF8F00),
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(width: 10),
-              Icon(Icons.star_rounded, color: Color(0xFFFFC107), size: 22),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
-  // ──────────────────────────────────────────────
   Widget _buildErrorBox(String message) {
     return Center(
       child: Container(
@@ -773,10 +528,6 @@ class TrackingScreen extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  bool _isResolved(String status) {
-    return status == 'resolved' || status == 'closed';
   }
 }
 

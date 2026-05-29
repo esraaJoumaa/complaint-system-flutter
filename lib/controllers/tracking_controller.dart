@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../models/complaint_model.dart';
 import '../services/tracking_service.dart';
 
-/// Controller متابعة الشكوى — للمواطن فقط
 class TrackingController extends GetxController {
   TrackingController({TrackingService? trackingService})
     : _trackingService = trackingService ?? TrackingService();
@@ -14,9 +13,6 @@ class TrackingController extends GetxController {
   final Rxn<ComplaintModel> complaint = Rxn<ComplaintModel>();
   final RxnString error = RxnString();
 
-  // ──────────────────────────────────────────────
-  // تتبع الشكوى بالرقم
-  // ──────────────────────────────────────────────
   Future<void> trackById(String idText) async {
     final int? id = int.tryParse(idText.trim());
     if (id == null) {

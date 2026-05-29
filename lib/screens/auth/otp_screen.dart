@@ -1,270 +1,117 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
-
 import '../../controllers/auth_controller.dart';
 
-class OtpScreen extends StatefulWidget {
+class OtpScreen extends StatelessWidget {
   const OtpScreen({super.key});
 
   @override
-  State<OtpScreen> createState() => _OtpScreenState();
-}
-
-class _OtpScreenState extends State<OtpScreen> {
-  static const Color _primary = Color(0xFF00838F);
-  static const Color _dark = Color(0xFF006064);
-  static const Color _background = Color(0xFFE0F7FA);
-
-  final TextEditingController _pinController = TextEditingController();
-  late final AuthController _auth;
-
-  @override
-  void initState() {
-    super.initState();
-    _auth = Get.isRegistered<AuthController>()
-        ? Get.find<AuthController>()
-        : Get.put(AuthController());
-  }
-
-  @override
-  void dispose() {
-    _pinController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final String email = _auth.tempEmail ?? 'user@email.com';
+    final authController = Get.find<AuthController>();
+
+    final String userEmail = authController.tempEmail ?? "user@email.com";
 
     return Scaffold(
-      backgroundColor: _background,
+      backgroundColor: const Color(0xFFF0F8FA),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: _dark),
+          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF006064)),
           onPressed: () => Get.back(),
         ),
       ),
       body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        padding: const EdgeInsets.symmetric(horizontal: 28),
+        padding: const EdgeInsets.symmetric(horizontal: 30),
         child: Column(
           children: [
-            const SizedBox(height: 16),
-
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: _primary.withOpacity(0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.mark_email_read_outlined,
-                size: 52,
-                color: _primary,
-              ),
+            const SizedBox(height: 20),
+            const Icon(
+              Icons.mark_email_read_outlined,
+              size: 100,
+              color: Colors.orangeAccent,
             ),
-            const SizedBox(height: 28),
+            const SizedBox(height: 30),
 
             const Text(
-              'التحقق من الحساب',
+              "التحقق من الحساب",
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: _dark,
+                color: Color(0xFF006064),
               ),
             ),
-            const SizedBox(height: 12),
-
-            const Text(
-              'أدخل الرمز المكون من 6 أرقام\nالمرسل إلى:',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.black54, fontSize: 14),
-            ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 15),
             Text(
-              email,
-              style: const TextStyle(
-                color: _primary,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-              ),
+              "يرجى إدخال الرمز المكون من 6 أرقام\nالمرسل إلى بريدك الإلكتروني:\n$userEmail",
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.black54, fontSize: 16),
             ),
 
-            if ((_auth.tempUsername ?? '').isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _primary.withOpacity(0.3)),
-                ),
-                child: Column(
-                  children: [
-                    const Text(
-                      'اسم المستخدم الخاص بك (للدخول لاحقاً):',
-                      style: TextStyle(color: Color(0xFF546E7A), fontSize: 12),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      _auth.tempUsername!,
-                      style: const TextStyle(
-                        color: _dark,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
 
             Pinput(
               length: 6,
-              controller: _pinController,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               defaultPinTheme: PinTheme(
-                width: 48,
-                height: 56,
+                width: 45,
+                height: 55,
                 textStyle: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: _dark,
+                  color: Color(0xFF006064),
                 ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.grey.shade300),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _primary.withOpacity(0.08),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
                 ),
               ),
-              focusedPinTheme: PinTheme(
-                width: 48,
-                height: 56,
-                textStyle: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: _dark,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: _primary, width: 2),
-                  boxShadow: [
-                    BoxShadow(
-                      color: _primary.withOpacity(0.15),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-              ),
-              onCompleted: (pin) => _verify(pin),
+              onCompleted: (pin) => authController.verifyOtp(pin),
             ),
-            const SizedBox(height: 32),
 
-            Obx(() {
-              final loading = _auth.isLoading.value;
-              return GestureDetector(
-                onTap: loading ? null : () => _verify(_pinController.text),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: double.infinity,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    gradient: loading
-                        ? const LinearGradient(
-                            colors: [Color(0xFF80CBC4), Color(0xFF80CBC4)],
-                          )
-                        : const LinearGradient(
-                            colors: [_dark, _primary],
-                            begin: Alignment.centerRight,
-                            end: Alignment.centerLeft,
-                          ),
+            const SizedBox(height: 50),
+
+            Obx(
+              () => ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00838F),
+                  minimumSize: const Size(double.infinity, 55),
+                  shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15),
-                    boxShadow: loading
-                        ? []
-                        : [
-                            BoxShadow(
-                              color: _primary.withOpacity(0.35),
-                              blurRadius: 12,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
                   ),
-                  child: Center(
-                    child: loading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2.5,
-                            ),
-                          )
-                        : const Text(
-                            'تأكيد الرمز',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 17,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                  ),
+                  elevation: 2,
                 ),
-              );
-            }),
-            const SizedBox(height: 20),
-
-            TextButton.icon(
-              onPressed: () => Get.snackbar(
-                'تنبيه',
-                'ميزة إعادة الإرسال ستُضاف قريباً',
-                snackPosition: SnackPosition.BOTTOM,
-              ),
-              icon: const Icon(
-                Icons.refresh_rounded,
-                color: _primary,
-                size: 18,
-              ),
-              label: const Text(
-                'لم يصلك الرمز؟ إعادة إرسال',
-                style: TextStyle(color: _primary, fontWeight: FontWeight.w600),
+                onPressed: authController.isLoading.value ? null : () {},
+                child: authController.isLoading.value
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        "تأكيد الرمز",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
-            const SizedBox(height: 40),
+
+            const SizedBox(height: 25),
+
+            TextButton(
+              onPressed: () {},
+              child: const Text(
+                "لم يصلك الرمز؟ إعادة إرسال",
+                style: TextStyle(
+                  color: Color(0xFF00838F),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
-  }
-
-  void _verify(String pin) {
-    if (pin.trim().length < 6) {
-      Get.snackbar(
-        'تنبيه',
-        'يرجى إدخال الرمز المكون من 6 أرقام كاملاً',
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-    _auth.verifyOtp(pin.trim());
   }
 }

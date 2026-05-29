@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 
 import '../../models/complaint_model.dart';
 import '../../services/complaint_service.dart';
-import '../../core/constants/api_constants.dart';
 import '../../core/routes/app_routes.dart';
 
 class EmployeeController extends GetxController {
@@ -25,9 +24,6 @@ class EmployeeController extends GetxController {
     fetchComplaints();
   }
 
-  // ──────────────────────────────────────────────
-  // جلب الشكاوي
-  // ──────────────────────────────────────────────
   Future<void> fetchComplaints() async {
     try {
       isLoading(true);
@@ -47,38 +43,31 @@ class EmployeeController extends GetxController {
     await fetchComplaints();
   }
 
-  // ──────────────────────────────────────────────
-  // فتح الشكوى
-  // ──────────────────────────────────────────────
   Future<void> openAndProcessComplaint(ComplaintModel complaint) async {
     selectedComplaint.value = complaint;
 
-    if (complaint.status.toLowerCase() == 'pending') {
+    if (complaint.status == 'new' || complaint.status == 'pending') {
       try {
         await _service.updateComplaintStatus(complaint.id!, 'in_progress');
-        selectedComplaint.value = _copyWithStatus(
-          complaint,
-          ApiConstants.statusInProgress,
-        );
+        selectedComplaint.value = _copyWithStatus(complaint, 'in_progress');
       } catch (_) {}
     }
 
     Get.toNamed(Routes.COMPLAINT_DETAILS, arguments: selectedComplaint.value);
   }
 
-  // ──────────────────────────────────────────────
-  // إغلاق الشكوى
-  // ──────────────────────────────────────────────
   Future<void> closeComplaint(int id, String responseText) async {
     if (responseText.trim().isEmpty) {
       _showError('يرجى كتابة الرد قبل الإغلاق');
       return;
     }
+
     try {
       isLoadingAction(true);
       await _service.respondToComplaint(id, responseText);
-      Get.back(); // إغلاق Dialog
-      Get.back(); // العودة للقائمة
+
+      Get.back();
+      Get.back();
       _showSuccess('تم إغلاق الشكوى وإشعار المواطن بنجاح');
       await fetchComplaints();
     } catch (e) {
@@ -88,9 +77,6 @@ class EmployeeController extends GetxController {
     }
   }
 
-  // ──────────────────────────────────────────────
-  // فتح الشات
-  // ──────────────────────────────────────────────
   void openChat(ComplaintModel complaint) {
     Get.toNamed(
       Routes.CHAT,
@@ -101,12 +87,9 @@ class EmployeeController extends GetxController {
     );
   }
 
-  // ──────────────────────────────────────────────
-
   ComplaintModel _copyWithStatus(ComplaintModel c, String status) {
     return ComplaintModel(
       id: c.id,
-      complainNumber: c.complainNumber,
       userId: c.userId,
       authorityId: c.authorityId,
       departmentId: c.departmentId,
@@ -123,22 +106,24 @@ class EmployeeController extends GetxController {
       assignedLevel: c.assignedLevel,
       canChat: c.canChat,
       currentLevelName: c.currentLevelName,
-      levelName: c.levelName,
-      priority: c.priority,
     );
   }
 
-  void _showSuccess(String message) => Get.snackbar(
-    'نجاح ✓',
-    message,
-    snackPosition: SnackPosition.BOTTOM,
-    duration: const Duration(seconds: 3),
-  );
+  void _showSuccess(String message) {
+    Get.snackbar(
+      'نجاح ✓',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 3),
+    );
+  }
 
-  void _showError(String message) => Get.snackbar(
-    'خطأ',
-    message,
-    snackPosition: SnackPosition.BOTTOM,
-    duration: const Duration(seconds: 3),
-  );
+  void _showError(String message) {
+    Get.snackbar(
+      'خطأ',
+      message,
+      snackPosition: SnackPosition.BOTTOM,
+      duration: const Duration(seconds: 3),
+    );
+  }
 }
