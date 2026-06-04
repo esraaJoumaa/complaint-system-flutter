@@ -5,7 +5,6 @@ import '../../../controllers/employee/employee_controller.dart';
 import '../../../bindings/employee_binding.dart';
 import '../../../models/complaint_model.dart';
 
-/// قائمة شكاوي الموظف
 class EmployeeComplaintsListPage extends StatelessWidget {
   const EmployeeComplaintsListPage({super.key});
 
@@ -15,7 +14,6 @@ class EmployeeComplaintsListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // نتأكد أن الـ Controller موجود — إن لم يكن نُنشئه هنا
     final EmployeeController controller = Get.isRegistered<EmployeeController>()
         ? Get.find<EmployeeController>()
         : Get.put(EmployeeController());
@@ -24,7 +22,6 @@ class EmployeeComplaintsListPage extends StatelessWidget {
         (Get.arguments is String ? Get.arguments as String : null) ??
         controller.currentStatus.value;
 
-    // تحميل الشكاوي إن اختلفت الحالة
     if (controller.currentStatus.value != statusArg) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         controller.fetchComplaintsByStatus(statusArg);
@@ -54,9 +51,6 @@ class EmployeeComplaintsListPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // AppBar
-  // ──────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar(
     String status,
     EmployeeController controller,
@@ -97,9 +91,6 @@ class EmployeeComplaintsListPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // القائمة
-  // ──────────────────────────────────────────────
   Widget _buildList(EmployeeController controller) {
     return RefreshIndicator(
       color: _primary,
@@ -120,9 +111,6 @@ class EmployeeComplaintsListPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // حالة فارغة
-  // ──────────────────────────────────────────────
   Widget _buildEmptyState(String status) {
     return Center(
       child: Column(
@@ -160,9 +148,6 @@ class EmployeeComplaintsListPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // حالة خطأ
-  // ──────────────────────────────────────────────
   Widget _buildErrorState(EmployeeController controller, String status) {
     return Center(
       child: Padding(
@@ -200,9 +185,6 @@ class EmployeeComplaintsListPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // Helpers
-  // ──────────────────────────────────────────────
   String _statusTitle(String status) {
     switch (status.toLowerCase()) {
       case 'new':
@@ -234,9 +216,6 @@ class EmployeeComplaintsListPage extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════
-// بطاقة الشكوى
-// ══════════════════════════════════════════════════════
 class _ComplaintCard extends StatelessWidget {
   final ComplaintModel complaint;
   final VoidCallback onTap;
@@ -267,7 +246,6 @@ class _ComplaintCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // شريط الحالة
             Container(
               height: 4,
               decoration: BoxDecoration(
@@ -314,7 +292,6 @@ class _ComplaintCard extends StatelessWidget {
                           ],
                         ),
                       ),
-                      // رقم الشكوى أو complain_number
                       Text(
                         complaint.complainNumber ??
                             'شكوى #${complaint.id ?? '--'}',

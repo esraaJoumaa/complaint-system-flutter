@@ -15,8 +15,8 @@ class ComplaintDetailsPage extends StatefulWidget {
 }
 
 class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
-  static const Color _primary    = Color(0xFF00838F);
-  static const Color _dark       = Color(0xFF006064);
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
   static const Color _background = Color(0xFFE0F7FA);
 
   final TextEditingController _replyController = TextEditingController();
@@ -29,7 +29,7 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
   void initState() {
     super.initState();
     _controller = Get.find<EmployeeController>();
-    _complaint  = Get.arguments as ComplaintModel;
+    _complaint = Get.arguments as ComplaintModel;
   }
 
   @override
@@ -80,7 +80,6 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
     );
   }
 
-  // ──────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: _dark,
@@ -102,11 +101,13 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
       actions: [
         if (_complaint.canChat)
           IconButton(
-            icon: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white),
+            icon: const Icon(
+              Icons.chat_bubble_outline_rounded,
+              color: Colors.white,
+            ),
             onPressed: _openChat,
             tooltip: 'فتح المحادثة',
           ),
-        // ── زر رفض الشكوى في الـ AppBar ──
         if (_complaint.status != 'closed' && _complaint.status != 'resolved')
           IconButton(
             icon: const Icon(Icons.block_rounded, color: Color(0xFFEF9A9A)),
@@ -126,11 +127,10 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildStatusBanner() {
     final color = _statusColor(_complaint.status);
     final label = _statusLabel(_complaint.status);
-    final icon  = _statusIcon(_complaint.status);
+    final icon = _statusIcon(_complaint.status);
 
     return Container(
       width: double.infinity,
@@ -166,18 +166,16 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildInfoCard() {
     return _SectionCard(
       title: 'معلومات الشكوى',
       icon: Icons.info_outline_rounded,
       children: [
-        _InfoRow(label: 'عنوان الشكوى',   value: _complaint.title),
+        _InfoRow(label: 'عنوان الشكوى', value: _complaint.title),
         _InfoRow(
           label: 'مقدم الشكوى',
           value: _complaint.fullName ?? 'غير محدد',
         ),
-        // ── سكور مقدّم الشكوى ──
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Row(
@@ -308,7 +306,10 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
             decoration: InputDecoration(
               hintText: 'اكتب ردك الرسمي على الشكوى هنا...',
               hintTextDirection: TextDirection.rtl,
-              hintStyle: const TextStyle(color: Color(0xFFB0BEC5), fontSize: 13),
+              hintStyle: const TextStyle(
+                color: Color(0xFFB0BEC5),
+                fontSize: 13,
+              ),
               filled: true,
               fillColor: const Color(0xFFF5FAFB),
               border: OutlineInputBorder(
@@ -344,8 +345,6 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
     );
   }
 
-
-  // ──────────────────────────────────────────────
   Widget _buildBottomActions() {
     final isClosed =
         _complaint.status == 'closed' || _complaint.status == 'resolved';
@@ -440,7 +439,6 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
     );
   }
 
-  // ──────────────────────────────────────────────
   void _onCloseComplaint() {
     if (!_formKey.currentState!.validate()) return;
     Get.dialog(
@@ -467,44 +465,59 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
     }
     showDialog(
       context: context,
-      builder: (_) => RejectComplaintDialog(complainId: _complaint.id.toString()),
+      builder: (_) =>
+          RejectComplaintDialog(complainId: _complaint.id.toString()),
     );
   }
 
-  // ──────────────────────────────────────────────
   Color _statusColor(String status) {
     switch (status) {
       case 'new':
-      case 'pending':    return const Color(0xFF00838F);
-      case 'in_progress': return const Color(0xFF0097A7);
+      case 'pending':
+        return const Color(0xFF00838F);
+      case 'in_progress':
+        return const Color(0xFF0097A7);
       case 'closed':
-      case 'resolved':   return const Color(0xFF26A69A);
-      case 'rejected':   return const Color(0xFFD32F2F);
-      default:           return const Color(0xFF90A4AE);
+      case 'resolved':
+        return const Color(0xFF26A69A);
+      case 'rejected':
+        return const Color(0xFFD32F2F);
+      default:
+        return const Color(0xFF90A4AE);
     }
   }
 
   String _statusLabel(String status) {
     switch (status) {
       case 'new':
-      case 'pending':    return 'جديدة';
-      case 'in_progress': return 'قيد المعالجة';
+      case 'pending':
+        return 'جديدة';
+      case 'in_progress':
+        return 'قيد المعالجة';
       case 'closed':
-      case 'resolved':   return 'مغلقة';
-      case 'rejected':   return 'مرفوضة';
-      default:           return status;
+      case 'resolved':
+        return 'مغلقة';
+      case 'rejected':
+        return 'مرفوضة';
+      default:
+        return status;
     }
   }
 
   IconData _statusIcon(String status) {
     switch (status) {
       case 'new':
-      case 'pending':    return Icons.fiber_new_rounded;
-      case 'in_progress': return Icons.pending_actions_rounded;
+      case 'pending':
+        return Icons.fiber_new_rounded;
+      case 'in_progress':
+        return Icons.pending_actions_rounded;
       case 'closed':
-      case 'resolved':   return Icons.check_circle_rounded;
-      case 'rejected':   return Icons.cancel_rounded;
-      default:           return Icons.help_outline_rounded;
+      case 'resolved':
+        return Icons.check_circle_rounded;
+      case 'rejected':
+        return Icons.cancel_rounded;
+      default:
+        return Icons.help_outline_rounded;
     }
   }
 
@@ -512,16 +525,13 @@ class _ComplaintDetailsPageState extends State<ComplaintDetailsPage> {
       '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
 }
 
-
-// ══════════════════════════════════════════════════════
-
 class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<Widget> children;
 
   static const Color _primary = Color(0xFF00838F);
-  static const Color _dark    = Color(0xFF006064);
+  static const Color _dark = Color(0xFF006064);
 
   const _SectionCard({
     required this.title,
@@ -681,7 +691,11 @@ class _ActionButton extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(icon, color: outlined ? color : Colors.white, size: 18),
+                    Icon(
+                      icon,
+                      color: outlined ? color : Colors.white,
+                      size: 18,
+                    ),
                   ],
                 ),
         ),
@@ -697,7 +711,7 @@ class _ConfirmDialog extends StatelessWidget {
   final VoidCallback onConfirm;
 
   static const Color _primary = Color(0xFF00838F);
-  static const Color _dark    = Color(0xFF006064);
+  static const Color _dark = Color(0xFF006064);
 
   const _ConfirmDialog({
     required this.title,
@@ -777,7 +791,9 @@ class _ConfirmDialog extends StatelessWidget {
                     child: Container(
                       height: 46,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(colors: [_dark, _primary]),
+                        gradient: const LinearGradient(
+                          colors: [_dark, _primary],
+                        ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(

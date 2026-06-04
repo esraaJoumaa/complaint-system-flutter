@@ -39,7 +39,6 @@ class EmployeeDashboardPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildHeader() {
     return Container(
       width: double.infinity,
@@ -119,9 +118,6 @@ class EmployeeDashboardPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // أزرار الشكاوي الثلاثة
-  // ──────────────────────────────────────────────
   Widget _buildComplaintsSection(EmployeeController controller) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
@@ -198,9 +194,6 @@ class EmployeeDashboardPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // بطاقة المعلومات
-  // ──────────────────────────────────────────────
   Widget _buildInfoCard() {
     return Container(
       width: double.infinity,
@@ -276,9 +269,6 @@ class EmployeeDashboardPage extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // تأكيد تسجيل الخروج
-  // ──────────────────────────────────────────────
   void _confirmLogout() {
     Get.dialog(
       Dialog(
@@ -371,8 +361,6 @@ class EmployeeDashboardPage extends StatelessWidget {
     );
   }
 }
-
-// ══════════════════════════════════════════════════════
 
 class _HeaderIconButton extends StatelessWidget {
   final IconData icon;
