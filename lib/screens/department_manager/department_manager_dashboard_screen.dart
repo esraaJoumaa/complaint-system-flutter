@@ -8,8 +8,8 @@ import '../../core/routes/app_routes.dart';
 class DepartmentManagerDashboardScreen extends StatelessWidget {
   const DepartmentManagerDashboardScreen({super.key});
 
-  static const Color _primary    = Color(0xFF00838F);
-  static const Color _dark       = Color(0xFF006064);
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
   static const Color _background = Color(0xFFE0F7FA);
 
   @override
@@ -21,8 +21,9 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
       body: SafeArea(
         child: RefreshIndicator(
           color: _primary,
-          onRefresh: () async =>
-              controller.fetchComplaintsByStatus(controller.currentStatus.value),
+          onRefresh: () async => controller.fetchComplaintsByStatus(
+            controller.currentStatus.value,
+          ),
           child: CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
@@ -37,8 +38,6 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
     );
   }
 
-
-  // ──────────────────────────────────────────────
   Widget _buildHeader(DepartmentManagerController controller) {
     return Container(
       width: double.infinity,
@@ -85,15 +84,21 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
           const SizedBox(height: 20),
           Center(
             child: Container(
-              width: 72, height: 72,
+              width: 72,
+              height: 72,
               decoration: BoxDecoration(
                 color: Colors.white.withOpacity(0.15),
                 shape: BoxShape.circle,
                 border: Border.all(
-                    color: Colors.white.withOpacity(0.4), width: 2),
+                  color: Colors.white.withOpacity(0.4),
+                  width: 2,
+                ),
               ),
-              child: const Icon(Icons.manage_accounts_rounded,
-                  color: Colors.white, size: 38),
+              child: const Icon(
+                Icons.manage_accounts_rounded,
+                color: Colors.white,
+                size: 38,
+              ),
             ),
           ),
           const SizedBox(height: 12),
@@ -115,7 +120,9 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
               child: Text(
                 depts.first['name']?.toString() ?? '',
                 style: TextStyle(
-                    color: Colors.white.withOpacity(0.8), fontSize: 13),
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 13,
+                ),
               ),
             );
           }),
@@ -124,8 +131,6 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
     );
   }
 
-
-  // ──────────────────────────────────────────────
   Widget _buildComplaintsSection(DepartmentManagerController controller) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 28, 20, 8),
@@ -135,13 +140,19 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
           const Text(
             'إدارة الشكاوي',
             style: TextStyle(
-                color: _dark, fontSize: 18, fontWeight: FontWeight.bold),
+              color: _dark,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 4),
           Container(
-            width: 48, height: 3,
+            width: 48,
+            height: 3,
             decoration: BoxDecoration(
-                color: _primary, borderRadius: BorderRadius.circular(8)),
+              color: _primary,
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
           const SizedBox(height: 20),
           Row(
@@ -165,8 +176,10 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
                   color: const Color(0xFF0097A7),
                   onTap: () {
                     controller.fetchComplaintsByStatus('in_progress');
-                    Get.toNamed(Routes.MANAGER_COMPLAINTS,
-                        arguments: 'in_progress');
+                    Get.toNamed(
+                      Routes.MANAGER_COMPLAINTS,
+                      arguments: 'in_progress',
+                    );
                   },
                 ),
               ),
@@ -178,8 +191,7 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
                   color: const Color(0xFF006064),
                   onTap: () {
                     controller.fetchComplaintsByStatus('closed');
-                    Get.toNamed(Routes.MANAGER_COMPLAINTS,
-                        arguments: 'closed');
+                    Get.toNamed(Routes.MANAGER_COMPLAINTS, arguments: 'closed');
                   },
                 ),
               ),
@@ -190,8 +202,6 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // ──────────────────────────────────────────────
   Widget _buildInfoCard() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
@@ -203,9 +213,10 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-                color: _primary.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4)),
+              color: _primary.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         child: Column(
@@ -214,11 +225,14 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
             const Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text('تذكير مهم',
-                    style: TextStyle(
-                        color: _dark,
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold)),
+                Text(
+                  'تذكير مهم',
+                  style: TextStyle(
+                    color: _dark,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 SizedBox(width: 8),
                 Icon(Icons.info_outline_rounded, color: _primary, size: 20),
               ],
@@ -249,9 +263,6 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // تأكيد تسجيل الخروج
-  // ──────────────────────────────────────────────
   void _confirmLogout() {
     Get.dialog(
       Dialog(
@@ -262,22 +273,33 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 60, height: 60,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
-                    color: Colors.red.shade50, shape: BoxShape.circle),
-                child: Icon(Icons.logout_rounded,
-                    color: Colors.red.shade400, size: 30),
+                  color: Colors.red.shade50,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.logout_rounded,
+                  color: Colors.red.shade400,
+                  size: 30,
+                ),
               ),
               const SizedBox(height: 16),
-              const Text('تسجيل الخروج',
-                  style: TextStyle(
-                      color: _dark,
-                      fontSize: 17,
-                      fontWeight: FontWeight.bold)),
+              const Text(
+                'تسجيل الخروج',
+                style: TextStyle(
+                  color: _dark,
+                  fontSize: 17,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
               const SizedBox(height: 8),
-              const Text('هل أنت متأكد من تسجيل الخروج؟',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Color(0xFF546E7A), fontSize: 13)),
+              const Text(
+                'هل أنت متأكد من تسجيل الخروج؟',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Color(0xFF546E7A), fontSize: 13),
+              ),
               const SizedBox(height: 24),
               Row(
                 children: [
@@ -287,12 +309,15 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
                       child: Container(
                         height: 44,
                         decoration: BoxDecoration(
-                            color: const Color(0xFFECEFF1),
-                            borderRadius: BorderRadius.circular(12)),
+                          color: const Color(0xFFECEFF1),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: const Center(
-                            child: Text('إلغاء',
-                                style:
-                                    TextStyle(color: Color(0xFF546E7A)))),
+                          child: Text(
+                            'إلغاء',
+                            style: TextStyle(color: Color(0xFF546E7A)),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -306,13 +331,18 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
                       child: Container(
                         height: 44,
                         decoration: BoxDecoration(
-                            color: Colors.red.shade400,
-                            borderRadius: BorderRadius.circular(12)),
+                          color: Colors.red.shade400,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         child: const Center(
-                            child: Text('خروج',
-                                style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold))),
+                          child: Text(
+                            'خروج',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -325,9 +355,6 @@ class DepartmentManagerDashboardScreen extends StatelessWidget {
     );
   }
 }
-
-
-// ══════════════════════════════════════════════════════
 
 class _HeaderIconButton extends StatelessWidget {
   final IconData icon;
@@ -347,7 +374,8 @@ class _HeaderIconButton extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          width: 40, height: 40,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             color: Colors.white.withOpacity(0.15),
             borderRadius: BorderRadius.circular(12),
@@ -384,9 +412,10 @@ class _CategoryCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-                color: color.withOpacity(0.15),
-                blurRadius: 12,
-                offset: const Offset(0, 4))
+              color: color.withOpacity(0.15),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
           ],
           border: Border.all(color: color.withOpacity(0.2), width: 1.5),
         ),
@@ -394,19 +423,25 @@ class _CategoryCard extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              width: 48, height: 48,
+              width: 48,
+              height: 48,
               decoration: BoxDecoration(
-                  color: color.withOpacity(0.1), shape: BoxShape.circle),
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
               child: Icon(icon, color: color, size: 26),
             ),
             const SizedBox(height: 10),
-            Text(label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    color: color,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    height: 1.3)),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                height: 1.3,
+              ),
+            ),
           ],
         ),
       ),
@@ -428,10 +463,15 @@ class _InfoRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Flexible(
-          child: Text(text,
-              textAlign: TextAlign.right,
-              style: const TextStyle(
-                  color: Color(0xFF546E7A), fontSize: 12, height: 1.5)),
+          child: Text(
+            text,
+            textAlign: TextAlign.right,
+            style: const TextStyle(
+              color: Color(0xFF546E7A),
+              fontSize: 12,
+              height: 1.5,
+            ),
+          ),
         ),
         const SizedBox(width: 8),
         Icon(icon, color: _primary, size: 16),
