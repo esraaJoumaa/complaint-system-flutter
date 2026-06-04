@@ -83,7 +83,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  // ──────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: _dark,
@@ -131,7 +130,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildStatusBanner() {
     final color = _statusColor(_complaint.status);
     final label = _statusLabel(_complaint.status);
@@ -171,7 +169,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildInfoCard() {
     return _SectionCard(
       title: 'معلومات الشكوى',
@@ -355,7 +352,6 @@ class _DepartmentComplaintDetailScreenState
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildBottomActions() {
     final isClosed =
         _complaint.status == 'closed' || _complaint.status == 'resolved';
@@ -476,7 +472,8 @@ class _DepartmentComplaintDetailScreenState
     }
     showDialog(
       context: context,
-      builder: (_) => RejectComplaintDialog(complainId: _complaint.id.toString()),
+      builder: (_) =>
+          RejectComplaintDialog(complainId: _complaint.id.toString()),
     );
   }
 
@@ -534,8 +531,6 @@ class _DepartmentComplaintDetailScreenState
   String _formatDate(DateTime date) =>
       '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
 }
-
-// ══════════════════════════════════════════════════════
 
 class _SectionCard extends StatelessWidget {
   final String title;

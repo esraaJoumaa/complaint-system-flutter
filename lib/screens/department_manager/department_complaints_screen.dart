@@ -5,7 +5,6 @@ import '../../controllers/department_manager/department_manager_controller.dart'
 import '../../models/complaint_model.dart';
 import '../../core/routes/app_routes.dart';
 
-/// تستقبل [statusKey] كـ arguments وتعرض الشكاوي المناسبة
 class DepartmentComplaintsScreen extends StatelessWidget {
   const DepartmentComplaintsScreen({super.key});
 
@@ -17,7 +16,6 @@ class DepartmentComplaintsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = Get.find<DepartmentManagerController>();
 
-    // استقبال الحالة من الداش بورد
     final String statusArg =
         (Get.arguments is String ? Get.arguments as String : null) ??
         controller.currentStatus.value;
@@ -93,9 +91,6 @@ class DepartmentComplaintsScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // قائمة الشكاوي
-  // ──────────────────────────────────────────────
   Widget _buildComplaintsList(DepartmentManagerController controller) {
     return RefreshIndicator(
       color: _primary,
@@ -194,7 +189,6 @@ class DepartmentComplaintsScreen extends StatelessWidget {
     );
   }
 
-
   String _statusTitle(String status) {
     switch (status) {
       case 'new':
@@ -222,9 +216,6 @@ class DepartmentComplaintsScreen extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════
-// بطاقة الشكوى
-// ══════════════════════════════════════════════════════
 class _ComplaintCard extends StatelessWidget {
   final ComplaintModel complaint;
   final VoidCallback onTap;
@@ -256,7 +247,6 @@ class _ComplaintCard extends StatelessWidget {
         ),
         child: Column(
           children: [
-            // ── شريط الحالة العلوي ──
             Container(
               height: 4,
               decoration: BoxDecoration(
@@ -272,11 +262,9 @@ class _ComplaintCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // ── الصف الأول: الرقم + الحالة ──
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // شارة الحالة
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,
@@ -333,7 +321,6 @@ class _ComplaintCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
 
-                  // ── وصف مختصر ──
                   Text(
                     complaint.description,
                     textAlign: TextAlign.right,
@@ -347,11 +334,9 @@ class _ComplaintCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
 
-                  // ── الصف السفلي: اسم المشتكي + التاريخ + Chat ──
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // أيقونة الشات إن كان متاحاً
                       if (complaint.canChat)
                         Container(
                           padding: const EdgeInsets.symmetric(
@@ -385,7 +370,6 @@ class _ComplaintCard extends StatelessWidget {
                       else
                         const SizedBox.shrink(),
 
-                      // التاريخ + اسم المشتكي
                       Row(
                         children: [
                           if (complaint.createdAt != null)
@@ -426,7 +410,6 @@ class _ComplaintCard extends StatelessWidget {
     );
   }
 
-  // ── Helpers ──
   Color _getStatusColor(String status) {
     switch (status) {
       case 'new':
