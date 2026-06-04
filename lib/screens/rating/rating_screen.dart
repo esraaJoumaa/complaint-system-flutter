@@ -154,7 +154,6 @@ class RatingScreen extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _StarSelector extends StatelessWidget {
   final RatingController controller;
   const _StarSelector({required this.controller});
@@ -190,7 +189,6 @@ class _StarSelector extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _ScoreLabel extends StatelessWidget {
   final int score;
   const _ScoreLabel({required this.score});
@@ -222,7 +220,6 @@ class _ScoreLabel extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
 class _SuccessView extends StatelessWidget {
   final RatingResponse response;
   const _SuccessView({required this.response});
