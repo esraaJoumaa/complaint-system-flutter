@@ -42,7 +42,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Future<void> _markAllAsRead() async {
     await _service.markAllAsRead();
-    // تحديث القائمة محلياً
     final updated = _notifications
         .map(
           (n) => NotificationModel(
@@ -231,7 +230,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 }
 
-// ══════════════════════════════════════════════════════
 class _NotificationCard extends StatelessWidget {
   final NotificationModel notification;
   final VoidCallback onTap;
@@ -325,7 +323,6 @@ class _NotificationCard extends StatelessWidget {
                         height: 1.5,
                       ),
                     ),
-                    // التاريخ
                     if (notification.createdAt != null) ...[
                       const SizedBox(height: 8),
                       Row(
