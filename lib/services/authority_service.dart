@@ -13,7 +13,7 @@ class AuthorityService {
 
   Future<List<ComplaintModel>> fetchAllComplaints() async {
     try {
-      final response = await _dio.get(ApiConstants.managerComplaints);
+      final response = await _dio.get(ApiConstants.allComplaints);
       return _parseList(response.data);
     } on DioException catch (e) {
       throw BaseClient.handleError(e);
@@ -85,7 +85,7 @@ class AuthorityService {
 
   Future<List<Map<String, dynamic>>> fetchAllDepartments() async {
     try {
-      final response = await _dio.get(ApiConstants.allDepartments);
+      final response = await _dio.get(ApiConstants.myDepartments);
       final data = response.data;
       if (data is Map && data['data'] is List) {
         return List<Map<String, dynamic>>.from(

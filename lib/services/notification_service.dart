@@ -42,7 +42,7 @@ class NotificationService {
 
   Future<List<NotificationModel>> fetchLatest() async {
     try {
-      final response = await _dio.get(ApiConstants.notificationsLatest);
+      final response = await _dio.get(ApiConstants.notifications);
       final data = response.data;
       List<dynamic> raw = [];
       if (data is Map) {
@@ -79,13 +79,13 @@ class NotificationService {
 
   Future<void> markAsRead(int id) async {
     try {
-      await _dio.put(ApiConstants.markNotificationRead(id));
+      await _dio.put("${ApiConstants.notifications}/$id");
     } on DioException catch (_) {}
   }
 
   Future<void> markAllAsRead() async {
     try {
-      await _dio.put(ApiConstants.markAllNotificationsRead);
+      await _dio.put(ApiConstants.notifications);
     } on DioException catch (_) {}
   }
 }

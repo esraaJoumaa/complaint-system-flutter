@@ -73,7 +73,7 @@ class AuthorityDashboardScreen extends StatelessWidget {
                   _IconBtn(
                     icon: Icons.person_add_alt_1_rounded,
                     tooltip: 'إنشاء مستخدم',
-                    onTap: () => Get.toNamed(Routes.AUTHORITY_CREATE_USER),
+                    onTap: () => Get.toNamed(Routes.MANAGER_CREATE_EMPLOYEE),
                   ),
                   const SizedBox(width: 10),
                   _IconBtn(

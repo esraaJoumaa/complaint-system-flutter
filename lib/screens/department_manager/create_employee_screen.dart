@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 
 import '../../controllers/department_manager/department_manager_controller.dart';
 
-/// شاشة إنشاء موظف جديد — خاصة بمدير القسم
-/// تُرسل البيانات إلى /admin/create-user عبر الـ Controller
 class CreateEmployeeScreen extends StatefulWidget {
   const CreateEmployeeScreen({super.key});
 
@@ -13,29 +11,24 @@ class CreateEmployeeScreen extends StatefulWidget {
 }
 
 class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
-  // ── الألوان ──
-  static const Color _primary    = Color(0xFF00838F);
-  static const Color _dark       = Color(0xFF006064);
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
   static const Color _background = Color(0xFFE0F7FA);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Controllers حقول النموذج
-  final TextEditingController _nameController       = TextEditingController();
-  final TextEditingController _emailController      = TextEditingController();
-  final TextEditingController _usernameController   = TextEditingController();
-  final TextEditingController _phoneController      = TextEditingController();
-  final TextEditingController _passwordController   = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPassController = TextEditingController();
 
-  // حالة إظهار/إخفاء كلمة المرور
-  bool _obscurePassword        = true;
+  bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  // القسم المختار من الـ Dropdown
   int? _selectedDepartmentId;
 
-  // role_id ثابت للموظف = 4 حسب الـ API
   static const int _employeeRoleId = 4;
 
   late final DepartmentManagerController _controller;
@@ -44,7 +37,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
   void initState() {
     super.initState();
     _controller = Get.find<DepartmentManagerController>();
-    // جلب الأقسام لعرضها في الـ Dropdown
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _controller.fetchMyDepartments();
     });
@@ -67,7 +59,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
       backgroundColor: _background,
       appBar: _buildAppBar(),
       body: GestureDetector(
-        // إغلاق الكيبورد عند الضغط خارج الحقول
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -77,12 +68,13 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // ── رأس الصفحة ──
                 _buildPageHeader(),
                 const SizedBox(height: 24),
 
-                // ── البيانات الشخصية ──
-                _buildSectionTitle('البيانات الشخصية', Icons.person_outline_rounded),
+                _buildSectionTitle(
+                  'البيانات الشخصية',
+                  Icons.person_outline_rounded,
+                ),
                 const SizedBox(height: 12),
                 _buildNameField(),
                 const SizedBox(height: 14),
@@ -91,7 +83,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
                 _buildPhoneField(),
                 const SizedBox(height: 24),
 
-                // ── بيانات الحساب ──
                 _buildSectionTitle('بيانات الحساب', Icons.lock_outline_rounded),
                 const SizedBox(height: 12),
                 _buildEmailField(),
@@ -101,13 +92,11 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
                 _buildConfirmPasswordField(),
                 const SizedBox(height: 24),
 
-                // ── بيانات التعيين ──
                 _buildSectionTitle('بيانات التعيين', Icons.business_outlined),
                 const SizedBox(height: 12),
                 _buildDepartmentDropdown(),
                 const SizedBox(height: 32),
 
-                // ── زر الإنشاء ──
                 _buildSubmitButton(),
               ],
             ),
@@ -117,9 +106,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // AppBar
-  // ──────────────────────────────────────────────
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       backgroundColor: _dark,
@@ -150,9 +136,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // رأس الصفحة
-  // ──────────────────────────────────────────────
   Widget _buildPageHeader() {
     return Container(
       width: double.infinity,
@@ -189,10 +172,7 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
               SizedBox(height: 4),
               Text(
                 'أدخل بيانات الموظف الجديد بدقة',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ],
           ),
@@ -215,9 +195,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // عنوان القسم
-  // ──────────────────────────────────────────────
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -243,10 +220,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
       ],
     );
   }
-
-  // ──────────────────────────────────────────────
-  // حقول النموذج
-  // ──────────────────────────────────────────────
 
   Widget _buildNameField() {
     return _FormField(
@@ -317,7 +290,9 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
       obscureText: _obscurePassword,
       suffixIcon: IconButton(
         icon: Icon(
-          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+          _obscurePassword
+              ? Icons.visibility_off_outlined
+              : Icons.visibility_outlined,
           color: _primary,
           size: 20,
         ),
@@ -377,12 +352,15 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
           value: _selectedDepartmentId,
           isExpanded: true,
           decoration: InputDecoration(
-            hintText: departments.isEmpty ? 'جاري تحميل الأقسام...' : 'اختر القسم',
-            hintStyle: const TextStyle(
-              color: Color(0xFFB0BEC5),
-              fontSize: 13,
+            hintText: departments.isEmpty
+                ? 'جاري تحميل الأقسام...'
+                : 'اختر القسم',
+            hintStyle: const TextStyle(color: Color(0xFFB0BEC5), fontSize: 13),
+            prefixIcon: const Icon(
+              Icons.business_outlined,
+              color: _primary,
+              size: 20,
             ),
-            prefixIcon: const Icon(Icons.business_outlined, color: _primary, size: 20),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
@@ -401,8 +379,10 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
               borderRadius: BorderRadius.circular(14),
               borderSide: const BorderSide(color: Colors.red),
             ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
           items: departments.map((dept) {
             return DropdownMenuItem<int>(
@@ -410,10 +390,7 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
               child: Text(
                 dept['name']?.toString() ?? '',
                 textAlign: TextAlign.right,
-                style: const TextStyle(
-                  color: Color(0xFF37474F),
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Color(0xFF37474F), fontSize: 14),
               ),
             );
           }).toList(),
@@ -426,9 +403,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     });
   }
 
-  // ──────────────────────────────────────────────
-  // زر الإنشاء
-  // ──────────────────────────────────────────────
   Widget _buildSubmitButton() {
     return Obx(() {
       final isLoading = _controller.isLoadingAction.value;
@@ -496,14 +470,10 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     });
   }
 
-  // ──────────────────────────────────────────────
-  // Submit
-  // ──────────────────────────────────────────────
   void _onSubmit() {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedDepartmentId == null) return;
 
-    // جلب authority_id من القسم المختار
     final selectedDept = _controller.myDepartments.firstWhereOrNull(
       (d) => d['id'] == _selectedDepartmentId,
     );
@@ -523,9 +493,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
   }
 }
 
-// ══════════════════════════════════════════════════════
-// Widget مساعد — حقل نموذج موحد
-// ══════════════════════════════════════════════════════
 class _FormField extends StatelessWidget {
   final TextEditingController controller;
   final String hint;
@@ -559,17 +526,11 @@ class _FormField extends StatelessWidget {
       textDirection: textDirection,
       keyboardType: keyboardType,
       obscureText: obscureText,
-      style: const TextStyle(
-        color: Color(0xFF37474F),
-        fontSize: 14,
-      ),
+      style: const TextStyle(color: Color(0xFF37474F), fontSize: 14),
       decoration: InputDecoration(
         hintText: hint,
         hintTextDirection: TextDirection.rtl,
-        hintStyle: const TextStyle(
-          color: Color(0xFFB0BEC5),
-          fontSize: 13,
-        ),
+        hintStyle: const TextStyle(color: Color(0xFFB0BEC5), fontSize: 13),
         prefixIcon: Icon(icon, color: _primary, size: 20),
         suffixIcon: suffixIcon,
         filled: true,
@@ -594,8 +555,10 @@ class _FormField extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Colors.red, width: 1.5),
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         errorStyle: const TextStyle(fontSize: 11),
       ),
       validator: validator,

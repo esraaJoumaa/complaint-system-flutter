@@ -66,7 +66,7 @@ class AuthorityController extends GetxController {
     }
 
     Get.toNamed(
-      Routes.AUTHORITY_COMPLAINT_DETAIL,
+      Routes.MANAGER_COMPLAINT_DETAIL,
       arguments: selectedComplaint.value,
     );
   }

@@ -63,7 +63,7 @@ class ComplaintService {
 
   Future<List<ComplaintModel>> getAllComplaints() async {
     try {
-      final response = await _dio.get<dynamic>(ApiConstants.managerComplaints);
+      final response = await _dio.get<dynamic>(ApiConstants.allComplaints);
       return _parseList(response.data);
     } on DioException catch (e) {
       throw Exception(BaseClient.handleError(e));

@@ -66,7 +66,6 @@ class ChatScreen extends StatelessWidget {
         onPressed: () => Get.back(),
       ),
       actions: [
-        // زر فتح/إغلاق الشات — للمسؤولين فقط
         if (Rbac.isOfficialUser())
           Obx(
             () => IconButton(
@@ -128,7 +127,6 @@ class ChatScreen extends StatelessWidget {
     });
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildMessagesList() {
     return Obx(() {
       if (controller.isLoading.value) {
@@ -218,7 +216,6 @@ class ChatScreen extends StatelessWidget {
     });
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildInputArea() {
     return Obx(() {
       final bool canChat =
@@ -320,7 +317,6 @@ class ChatScreen extends StatelessWidget {
   }
 }
 
-// ══════════════════════════════════════════════════════
 class _MessageBubble extends StatelessWidget {
   final String text;
   final bool isMe;
