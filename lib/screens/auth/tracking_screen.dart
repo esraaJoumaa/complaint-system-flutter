@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import '../../controllers/tracking_controller.dart';
 import '../../controllers/rating_controller.dart';
 import '../../core/routes/app_routes.dart';
-import '../rating/rating_screen.dart';
 
 class TrackingScreen extends StatelessWidget {
   TrackingScreen({super.key});
@@ -64,37 +63,28 @@ class TrackingScreen extends StatelessWidget {
                     child: CircularProgressIndicator(color: _primary),
                   );
                 }
-
                 final err = controller.error.value;
                 if (err != null) return _buildErrorBox(err);
-
                 final complaint = controller.complaint.value;
                 if (complaint == null) return _buildInitialState();
 
                 return ListView(
                   physics: const BouncingScrollPhysics(),
                   children: [
-                    // ── بطاقة المعلومات ──
                     _buildComplaintCard(complaint),
                     const SizedBox(height: 16),
-
-                    // ── سكور المواطن ──
                     _buildUserScoreCard(complaint),
                     const SizedBox(height: 16),
-
-                    // ── Stepper الحالة ──
                     _buildStatusStepper(complaint.statusStepIndex),
                     const SizedBox(height: 16),
-
-                    // ── زر المحادثة ──
                     if (complaint.canChat) ...[
                       _buildChatButton(complaint),
                       const SizedBox(height: 12),
                     ],
-
-                    // ── زر التقييم: يظهر فقط إذا الشكوى مغلقة ولم يقيّم بعد ──
+                    // ── زر التقييم: يظهر فقط عند Resolved ──
                     if (_isResolved(complaint.status))
                       _buildRatingButton(complaint),
+                    const SizedBox(height: 24),
                   ],
                 );
               }),
@@ -370,32 +360,46 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-  // ──────────────────────────────────────────────
   Widget _buildUserScoreCard(complaint) {
-    final int score = complaint.userScore ?? 0;
+    final int? rawScore = complaint.userScore;
+    final bool isNewUser = rawScore == null;
+    final int score = rawScore ?? 0;
 
+    // ── اختيار اللون والنص ──
     final Color scoreColor;
-    final String scoreLabel;
+    final String scoreTitle;
+    final String scoreSubtitle;
     final IconData scoreIcon;
-    final double fillPercent = (score / 100).clamp(0.0, 1.0);
 
-    if (score >= 80) {
+    if (isNewUser) {
+      scoreColor = const Color(0xFF78909C);
+      scoreTitle = 'New User';
+      scoreSubtitle = 'No score yet';
+      scoreIcon = Icons.person_add_rounded;
+    } else if (score >= 80) {
       scoreColor = const Color(0xFF00838F);
-      scoreLabel = 'مستخدم موثوق ✅';
+      scoreTitle = 'Trusted User ✅';
+      scoreSubtitle = 'Keep it up!';
       scoreIcon = Icons.verified_user_rounded;
     } else if (score >= 50) {
       scoreColor = const Color(0xFF43A047);
-      scoreLabel = 'مستوى جيد 👍';
+      scoreTitle = 'Good Standing 👍';
+      scoreSubtitle = 'Great progress';
       scoreIcon = Icons.thumb_up_rounded;
     } else if (score >= 20) {
       scoreColor = const Color(0xFFFFA000);
-      scoreLabel = 'يحتاج تحسين ⚠️';
+      scoreTitle = 'Fair ⚠️';
+      scoreSubtitle = 'Room to improve';
       scoreIcon = Icons.warning_amber_rounded;
     } else {
       scoreColor = const Color(0xFFE53935);
-      scoreLabel = 'سكور منخفض ❗';
+      scoreTitle = 'Low Score ❗';
+      scoreSubtitle = 'Avoid false complaints';
       scoreIcon = Icons.error_outline_rounded;
     }
+
+    final double fillPercent = isNewUser ? 0.0 : (score / 100).clamp(0.0, 1.0);
+    final String displayScore = isNewUser ? '--' : '$score';
 
     return Container(
       width: double.infinity,
@@ -405,7 +409,7 @@ class TrackingScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: scoreColor.withOpacity(0.1),
+            color: scoreColor.withOpacity(0.10),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -419,7 +423,7 @@ class TrackingScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
               const Text(
-                'سكورك لدى المنصة',
+                'Your Score',
                 style: TextStyle(
                   color: Color(0xFF006064),
                   fontSize: 14,
@@ -436,7 +440,7 @@ class TrackingScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // التسمية
+              // Badge
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
@@ -447,7 +451,7 @@ class TrackingScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  scoreLabel,
+                  scoreTitle,
                   style: TextStyle(
                     color: scoreColor,
                     fontSize: 12,
@@ -460,7 +464,7 @@ class TrackingScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '$score',
+                    displayScore,
                     style: TextStyle(
                       color: scoreColor,
                       fontSize: 40,
@@ -468,11 +472,14 @@ class TrackingScreen extends StatelessWidget {
                       height: 1,
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.only(bottom: 6, right: 2),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 6, right: 2),
                     child: Text(
-                      '/100',
-                      style: TextStyle(color: Color(0xFF90A4AE), fontSize: 14),
+                      isNewUser ? '' : '/100',
+                      style: const TextStyle(
+                        color: Color(0xFF90A4AE),
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                 ],
@@ -493,11 +500,13 @@ class TrackingScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          // ── ملاحظة توضيحية ──
-          const Text(
-            'يرتفع سكورك عند حل شكاواك الصادقة، وينخفض عند تقديم شكاوى كاذبة.',
+          // ── ملاحظة ──
+          Text(
+            isNewUser
+                ? 'Score increases when your complaints are resolved, and decreases for false complaints.'
+                : scoreSubtitle,
             textAlign: TextAlign.right,
-            style: TextStyle(
+            style: const TextStyle(
               color: Color(0xFF90A4AE),
               fontSize: 11,
               height: 1.5,
@@ -538,21 +547,18 @@ class TrackingScreen extends StatelessWidget {
             subtitle: 'تم استلام شكواك بنجاح',
             isActive: currentStep >= 0,
             isComplete: currentStep > 0,
-            icon: Icons.inbox_rounded,
           ),
           _buildStep(
             title: 'قيد المعالجة',
             subtitle: 'يتم العمل على معالجة شكواك',
             isActive: currentStep >= 1,
             isComplete: currentStep > 1,
-            icon: Icons.pending_actions_rounded,
           ),
           _buildStep(
             title: 'تم الإغلاق',
             subtitle: 'تمت معالجة شكواك',
             isActive: currentStep >= 2,
             isComplete: currentStep == 2,
-            icon: Icons.check_circle_rounded,
           ),
         ],
       ),
@@ -564,7 +570,6 @@ class TrackingScreen extends StatelessWidget {
     required String subtitle,
     required bool isActive,
     required bool isComplete,
-    required IconData icon,
   }) {
     return Step(
       title: Text(
@@ -641,10 +646,10 @@ class TrackingScreen extends StatelessWidget {
 
   // ──────────────────────────────────────────────
   Widget _buildRatingButton(complaint) {
-    // تحقق هل قيّم مسبقاً من خلال RatingController
-    final ratingCtrl = Get.isRegistered<RatingController>()
-        ? Get.find<RatingController>()
-        : Get.put(RatingController());
+    if (!Get.isRegistered<RatingController>()) {
+      Get.lazyPut<RatingController>(() => RatingController(), fenix: true);
+    }
+    final ratingCtrl = Get.find<RatingController>();
 
     return Obx(() {
       final alreadyRated =
@@ -653,7 +658,6 @@ class TrackingScreen extends StatelessWidget {
               complaint.id.toString();
 
       if (alreadyRated) {
-        // ── حالة: تم التقييم ──
         return Container(
           width: double.infinity,
           height: 52,
@@ -707,7 +711,7 @@ class TrackingScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'قيّم الخدمة التي تلقيتها',
+                'Rate the service you received',
                 style: TextStyle(
                   color: Color(0xFFFF8F00),
                   fontSize: 15,
@@ -775,15 +779,14 @@ class TrackingScreen extends StatelessWidget {
     );
   }
 
-  bool _isResolved(String status) {
-    return status == 'resolved' || status == 'closed';
-  }
+  bool _isResolved(String status) =>
+      status.toLowerCase() == 'resolved' || status.toLowerCase() == 'closed';
 }
 
+// ══════════════════════════════════════════════════════
 class _DetailRow extends StatelessWidget {
   final String label;
   final String value;
-
   const _DetailRow({required this.label, required this.value});
 
   @override

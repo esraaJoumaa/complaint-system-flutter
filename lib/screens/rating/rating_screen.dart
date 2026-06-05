@@ -1,28 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/rating_controller.dart';
-import '../../core/constants/app_colors.dart'; // primary / dark / background
 import '../../models/rating_model.dart';
 
 class RatingScreen extends StatelessWidget {
   const RatingScreen({super.key});
+
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
+  static const Color _background = Color(0xFFE0F7FA);
 
   @override
   Widget build(BuildContext context) {
     final args = Get.arguments as Map<String, dynamic>? ?? {};
     final String complainId = args['complainId']?.toString() ?? '';
     final String authorityName = args['authorityName']?.toString() ?? 'الجهة';
-
     final controller = Get.find<RatingController>();
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: _background,
       appBar: AppBar(
-        backgroundColor: AppColors.dark,
+        backgroundColor: _dark,
         foregroundColor: Colors.white,
-        title: const Text('تقييم الخدمة'),
+        title: const Text('Rate the Service'),
         centerTitle: true,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+          ),
+          onPressed: () => Get.back(),
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(4),
+          child: Container(
+            height: 4,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [_dark, _primary]),
+            ),
+          ),
+        ),
       ),
       body: Obx(() {
         if (controller.hasRated.value &&
@@ -30,39 +48,47 @@ class RatingScreen extends StatelessWidget {
           return _SuccessView(response: controller.ratingResponse.value!);
         }
 
+        // ── نموذج التقييم ─────────────────────────────────────────────
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // ── أيقونة ──
               Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.15),
+                  color: _primary.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.star_rounded,
                   size: 44,
-                  color: AppColors.primary,
+                  color: _primary,
                 ),
               ),
               const SizedBox(height: 20),
 
-              Text(
-                'كيف تقيّم استجابة',
-                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+              const Text(
+                'How would you rate',
+                style: TextStyle(fontSize: 16, color: Color(0xFF546E7A)),
               ),
               const SizedBox(height: 4),
               Text(
                 authorityName,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.dark,
+                  color: _dark,
                 ),
                 textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Rate the response speed and service quality',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Color(0xFF90A4AE)),
               ),
               const SizedBox(height: 32),
 
@@ -71,14 +97,14 @@ class RatingScreen extends StatelessWidget {
               _ScoreLabel(score: controller.selectedScore.value),
               const SizedBox(height: 32),
 
-              Align(
-                alignment: AlignmentDirectional.centerStart,
+              const Align(
+                alignment: AlignmentDirectional.centerEnd,
                 child: Text(
-                  'تعليق (اختياري)',
+                  'Comment (optional)',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.dark,
+                    color: _dark,
                   ),
                 ),
               ),
@@ -89,7 +115,7 @@ class RatingScreen extends StatelessWidget {
                 onChanged: (v) => controller.comment.value = v,
                 textAlign: TextAlign.right,
                 decoration: InputDecoration(
-                  hintText: 'شاركنا رأيك حول سرعة الاستجابة وجودة الخدمة...',
+                  hintText: 'Share your experience...',
                   hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
                   filled: true,
                   fillColor: Colors.white,
@@ -103,10 +129,7 @@ class RatingScreen extends StatelessWidget {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(
-                      color: AppColors.primary,
-                      width: 1.5,
-                    ),
+                    borderSide: const BorderSide(color: _primary, width: 1.5),
                   ),
                   contentPadding: const EdgeInsets.all(14),
                 ),
@@ -116,34 +139,36 @@ class RatingScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: 52,
-                child: ElevatedButton(
-                  onPressed: controller.isRatingLoading.value
-                      ? null
-                      : () => controller.submitRating(complainId),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                child: Obx(
+                  () => ElevatedButton(
+                    onPressed: controller.isRatingLoading.value
+                        ? null
+                        : () => controller.submitRating(complainId),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      elevation: 0,
                     ),
-                    elevation: 0,
+                    child: controller.isRatingLoading.value
+                        ? const SizedBox(
+                            width: 22,
+                            height: 22,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.5,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Submit Rating',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                   ),
-                  child: controller.isRatingLoading.value
-                      ? const SizedBox(
-                          width: 22,
-                          height: 22,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text(
-                          'إرسال التقييم',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
                 ),
               ),
             ],
@@ -154,7 +179,7 @@ class RatingScreen extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────
 class _StarSelector extends StatelessWidget {
   final RatingController controller;
   const _StarSelector({required this.controller});
@@ -165,18 +190,18 @@ class _StarSelector extends StatelessWidget {
       () => Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: List.generate(5, (i) {
-          final starIndex = 5 - i; // RTL: 5 على اليسار، 1 على اليمين
+          final starIndex = 5 - i; // RTL: 5 يسار → 1 يمين
           final isSelected = controller.selectedScore.value >= starIndex;
           return GestureDetector(
             onTap: () => controller.setScore(starIndex),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
+                duration: const Duration(milliseconds: 180),
                 child: Icon(
                   isSelected ? Icons.star_rounded : Icons.star_outline_rounded,
                   key: ValueKey('$starIndex-$isSelected'),
-                  size: 46,
+                  size: 48,
                   color: isSelected
                       ? const Color(0xFFFFC107)
                       : Colors.grey[300],
@@ -190,17 +215,17 @@ class _StarSelector extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────
 class _ScoreLabel extends StatelessWidget {
   final int score;
   const _ScoreLabel({required this.score});
 
   static const _labels = {
-    1: ('سيئ جداً', Color(0xFFE53935)),
-    2: ('سيئ', Color(0xFFFF7043)),
-    3: ('مقبول', Color(0xFFFFA000)),
-    4: ('جيد', Color(0xFF43A047)),
-    5: ('ممتاز! 🎉', Color(0xFF00838F)),
+    1: ('Very Poor', Color(0xFFE53935)),
+    2: ('Poor', Color(0xFFFF7043)),
+    3: ('Average', Color(0xFFFFA000)),
+    4: ('Good', Color(0xFF43A047)),
+    5: ('Excellent! 🎉', Color(0xFF00838F)),
   };
 
   @override
@@ -208,7 +233,7 @@ class _ScoreLabel extends StatelessWidget {
     if (score == 0) return const SizedBox(height: 22);
     final (label, color) = _labels[score]!;
     return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 200),
+      duration: const Duration(milliseconds: 180),
       child: Text(
         label,
         key: ValueKey(score),
@@ -222,10 +247,13 @@ class _ScoreLabel extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────────────────────
 class _SuccessView extends StatelessWidget {
   final RatingResponse response;
   const _SuccessView({required this.response});
+
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
 
   @override
   Widget build(BuildContext context) {
@@ -242,58 +270,65 @@ class _SuccessView extends StatelessWidget {
               width: 90,
               height: 90,
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.12),
+                color: _primary.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.check_circle_rounded,
                 size: 52,
-                color: AppColors.primary,
+                color: _primary,
               ),
             ),
             const SizedBox(height: 20),
+
             const Text(
-              'شكراً لتقييمك! ⭐',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+              'Thank you for your rating! ⭐',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
+
             Text(
-              'متوسط تقييم ${response.authority.name}',
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              'Average rating for ${response.authority.name}',
+              style: const TextStyle(color: Color(0xFF546E7A), fontSize: 14),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
                   avg.toStringAsFixed(1),
-                  style: TextStyle(
-                    fontSize: 36,
+                  style: const TextStyle(
+                    fontSize: 40,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.dark,
+                    color: _dark,
                   ),
                 ),
                 const SizedBox(width: 8),
                 const Icon(
                   Icons.star_rounded,
                   color: Color(0xFFFFC107),
-                  size: 32,
+                  size: 34,
                 ),
               ],
             ),
             Text(
-              'من $total تقييم',
-              style: TextStyle(color: Colors.grey[500], fontSize: 13),
+              'Based on $total ratings',
+              style: const TextStyle(color: Color(0xFF90A4AE), fontSize: 13),
             ),
             const SizedBox(height: 40),
+
             SizedBox(
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () => Get.back(),
+                onPressed: () {
+                  Get.back();
+                },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
+                  backgroundColor: _primary,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -301,7 +336,7 @@ class _SuccessView extends StatelessWidget {
                   elevation: 0,
                 ),
                 child: const Text(
-                  'العودة',
+                  'Back to Tracking',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),

@@ -6,16 +6,21 @@ import '../services/rating_service.dart';
 class RatingController extends GetxController {
   final RatingService _ratingService = RatingService();
 
+  // ─────────────────── حالة التقييم (المواطن) ──────────────────────────────
   final RxInt selectedScore = 0.obs;
   final RxString comment = ''.obs;
   final RxBool isRatingLoading = false.obs;
   final RxBool hasRated = false.obs;
   final Rx<RatingResponse?> ratingResponse = Rx<RatingResponse?>(null);
 
+  // ─────────────────── حالة الرفض (الموظف / المدراء) ──────────────────────
   final RxString rejectionReason = ''.obs;
   final RxBool isRejectLoading = false.obs;
-  final Rx<RejectComplaintResponse?> rejectResponse = Rx<RejectComplaintResponse?>(null);
+  final Rx<RejectComplaintResponse?> rejectResponse =
+      Rx<RejectComplaintResponse?>(null);
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // المواطن: تقديم تقييم للجهة
   // ─────────────────────────────────────────────────────────────────────────
   Future<void> submitRating(String complainId) async {
     if (selectedScore.value == 0) {
@@ -47,7 +52,7 @@ class RatingController extends GetxController {
     } catch (e) {
       Get.snackbar(
         'خطأ',
-        e.toString(),
+        e.toString().replaceFirst('Exception: ', ''),
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
@@ -55,7 +60,8 @@ class RatingController extends GetxController {
     }
   }
 
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // الموظف / المدراء: رفض الشكوى ككاذبة
   // ─────────────────────────────────────────────────────────────────────────
   Future<void> rejectComplaint(String complainId) async {
     if (rejectionReason.value.trim().isEmpty) {
@@ -76,6 +82,8 @@ class RatingController extends GetxController {
 
       rejectResponse.value = result;
 
+      if (Get.isDialogOpen ?? false) Get.back();
+
       if (result.isUserBanned) {
         Get.snackbar(
           '🚫 تم الحظر',
@@ -87,19 +95,19 @@ class RatingController extends GetxController {
         );
       } else {
         Get.snackbar(
-          'تم الرفض',
+          '✅ تم الرفض',
           result.message,
           snackPosition: SnackPosition.BOTTOM,
           duration: const Duration(seconds: 3),
         );
       }
 
-      Get.back(); // إغلاق الـ Dialog
+      Get.back();
       _refreshComplaintsIfAvailable();
     } catch (e) {
       Get.snackbar(
         'خطأ',
-        e.toString(),
+        e.toString().replaceFirst('Exception: ', ''),
         snackPosition: SnackPosition.BOTTOM,
       );
     } finally {
@@ -123,13 +131,21 @@ class RatingController extends GetxController {
   }
 
   void _refreshComplaintsIfAvailable() {
-    for (final tag in ['employee', 'dept_manager', 'authority']) {
-      if (Get.isRegistered(tag: tag)) {
-        try {
-          (Get.find(tag: tag) as dynamic).loadComplaints();
-        } catch (_) {}
+    try {
+      if (Get.isRegistered(tag: 'employee')) {
+        (Get.find(tag: 'employee') as dynamic).loadComplaints?.call();
       }
-    }
+    } catch (_) {}
+    try {
+      if (Get.isRegistered(tag: 'dept_manager')) {
+        // ignore: avoid_dynamic_calls
+        (Get.find(tag: 'dept_manager') as dynamic).loadComplaints?.call();
+      }
+    } catch (_) {}
+    try {
+      if (Get.isRegistered(tag: 'authority')) {
+        (Get.find(tag: 'authority') as dynamic).loadComplaints?.call();
+      }
+    } catch (_) {}
   }
 }
-

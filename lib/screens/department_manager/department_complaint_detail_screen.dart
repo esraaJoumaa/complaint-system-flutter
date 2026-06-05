@@ -476,7 +476,7 @@ class _DepartmentComplaintDetailScreenState
     }
     showDialog(
       context: context,
-      builder: (_) => RejectComplaintDialog(complainId: _complaint.id.toString()),
+      builder: (_) => RejectDialog(complainId: _complaint.id.toString()),
     );
   }
 

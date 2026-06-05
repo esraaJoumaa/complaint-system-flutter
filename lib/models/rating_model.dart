@@ -21,14 +21,14 @@ class RatingModel {
 
   factory RatingModel.fromJson(Map<String, dynamic> json) {
     return RatingModel(
-      id: json['id'],
+      id: json['id'] as int,
       complainId: json['complain_id'].toString(),
-      userId: json['user_id'],
-      authorityId: json['authority_id'],
-      responseSpeedScore: json['response_speed_score'],
-      comment: json['comment'],
-      createdAt: json['created_at'] ?? '',
-      updatedAt: json['updated_at'] ?? '',
+      userId: json['user_id'] as int,
+      authorityId: json['authority_id'] as int,
+      responseSpeedScore: json['response_speed_score'] as int,
+      comment: json['comment']?.toString(),
+      createdAt: json['created_at']?.toString() ?? '',
+      updatedAt: json['updated_at']?.toString() ?? '',
     );
   }
 
@@ -82,10 +82,14 @@ class RatingResponse {
 
   factory RatingResponse.fromJson(Map<String, dynamic> json) {
     return RatingResponse(
-      success: json['success'],
-      message: json['message'],
-      rating: RatingModel.fromJson(json['data']['rating']),
-      authority: AuthorityRatingSummary.fromJson(json['data']['authority']),
+      success: json['success'] == true || json['success'] == 1,
+      message: json['message']?.toString() ?? '',
+      rating: RatingModel.fromJson(
+        Map<String, dynamic>.from(json['data']['rating']),
+      ),
+      authority: AuthorityRatingSummary.fromJson(
+        Map<String, dynamic>.from(json['data']['authority']),
+      ),
     );
   }
 }
@@ -105,9 +109,9 @@ class RejectComplaintResponse {
 
   factory RejectComplaintResponse.fromJson(Map<String, dynamic> json) {
     return RejectComplaintResponse(
-      success: json['success'],
-      status: json['status'] ?? '',
-      message: json['message'],
+      success: json['success'] == true || json['success'] == 1,
+      status: json['status']?.toString() ?? '',
+      message: json['message']?.toString() ?? '',
     );
   }
 }

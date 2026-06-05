@@ -56,11 +56,15 @@ class ChatController extends GetxController {
     error.value = null;
 
     try {
+      if (Rbac.isOfficialUser()) {
+        await _chatService.openChat(complaintId);
+      }
+
       final items = await _chatService.getHistory(complaintId);
       messages.assignAll(items);
       _updateCanSend();
     } catch (e) {
-      error.value = e.toString();
+      error.value = e.toString().replaceFirst('Exception: ', '');
       canSend.value = Rbac.isOfficialUser();
     } finally {
       isLoading.value = false;

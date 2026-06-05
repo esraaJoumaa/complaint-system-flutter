@@ -1,25 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../controllers/rating_controller.dart';
-import '../../core/constants/app_colors.dart';
 
-class RejectComplaintDialog extends StatefulWidget {
+class RejectDialog extends StatefulWidget {
   final String complainId;
-
-  const RejectComplaintDialog({super.key, required this.complainId});
+  const RejectDialog({super.key, required this.complainId});
 
   @override
-  State<RejectComplaintDialog> createState() => _RejectComplaintDialogState();
+  State<RejectDialog> createState() => _RejectDialogState();
 }
 
-class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
+class _RejectDialogState extends State<RejectDialog> {
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _red = Color(0xFFD32F2F);
+
   final TextEditingController _reasonController = TextEditingController();
-  final RatingController _ratingController = Get.find<RatingController>();
+  late final RatingController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!Get.isRegistered<RatingController>()) {
+      Get.lazyPut<RatingController>(() => RatingController(), fenix: true);
+    }
+    _ctrl = Get.find<RatingController>();
+    _ctrl.resetRejection();
+  }
 
   @override
   void dispose() {
     _reasonController.dispose();
-    _ratingController.resetRejection();
     super.dispose();
   }
 
@@ -37,17 +47,13 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
             Row(
               children: [
                 Container(
-                  width: 40,
-                  height: 40,
+                  width: 42,
+                  height: 42,
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFEBEE),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
-                    Icons.block_rounded,
-                    color: Color(0xFFD32F2F),
-                    size: 22,
-                  ),
+                  child: const Icon(Icons.block_rounded, color: _red, size: 22),
                 ),
                 const SizedBox(width: 12),
                 const Expanded(
@@ -59,11 +65,11 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
                         style: TextStyle(
                           fontSize: 17,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFD32F2F),
+                          color: _red,
                         ),
                       ),
                       Text(
-                        'سيؤثر هذا على سكور مقدّم الشكوى',
+                        'سيؤثر على نقاط مقدّم الشكوى',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
@@ -71,7 +77,7 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             Container(
               width: double.infinity,
@@ -81,18 +87,18 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: const Color(0xFFFFB300), width: 0.8),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.warning_amber_rounded,
                     color: Color(0xFFFF8F00),
                     size: 18,
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'عند 3 شكاوى كاذبة يُحظر المستخدم نهائياً.',
-                      style: TextStyle(fontSize: 12, color: Colors.orange[900]),
+                      style: TextStyle(fontSize: 12, color: Color(0xFFE65100)),
                     ),
                   ),
                 ],
@@ -100,12 +106,15 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
             ),
             const SizedBox(height: 16),
 
-            const Text(
-              'سبب الرفض *',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF333333),
+            const Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: Text(
+                'سبب الرفض *',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF333333),
+                ),
               ),
             ),
             const SizedBox(height: 8),
@@ -114,7 +123,8 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
               maxLines: 4,
               maxLength: 500,
               textAlign: TextAlign.right,
-              onChanged: (v) => _ratingController.rejectionReason.value = v,
+              textDirection: TextDirection.rtl,
+              onChanged: (v) => _ctrl.rejectionReason.value = v,
               decoration: InputDecoration(
                 hintText: 'اكتب سبباً واضحاً ومفصّلاً للرفض...',
                 hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
@@ -130,24 +140,21 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(
-                    color: Color(0xFFD32F2F),
-                    width: 1.5,
-                  ),
+                  borderSide: const BorderSide(color: _red, width: 1.5),
                 ),
                 contentPadding: const EdgeInsets.all(14),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
             Obx(
               () => Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: _ratingController.isRejectLoading.value
+                      onPressed: _ctrl.isRejectLoading.value
                           ? null
-                          : () => Get.back(),
+                          : () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.grey[700],
                         side: BorderSide(color: Colors.grey.shade300),
@@ -160,16 +167,13 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
                     ),
                   ),
                   const SizedBox(width: 12),
-
                   Expanded(
                     child: ElevatedButton(
-                      onPressed: _ratingController.isRejectLoading.value
+                      onPressed: _ctrl.isRejectLoading.value
                           ? null
-                          : () => _ratingController.rejectComplaint(
-                              widget.complainId,
-                            ),
+                          : () => _ctrl.rejectComplaint(widget.complainId),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD32F2F),
+                        backgroundColor: _red,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -177,7 +181,7 @@ class _RejectComplaintDialogState extends State<RejectComplaintDialog> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         elevation: 0,
                       ),
-                      child: _ratingController.isRejectLoading.value
+                      child: _ctrl.isRejectLoading.value
                           ? const SizedBox(
                               width: 20,
                               height: 20,

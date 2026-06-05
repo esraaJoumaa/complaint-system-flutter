@@ -9,41 +9,46 @@ class RatingService {
   RatingService({Dio? dio}) : _dio = dio ?? DioClient.instance.dio;
   final Dio _dio;
 
-  // ─────────────────────────────────────────────────────────────────────────
+  // ───────────────────────────────────────────────────────────────
   Future<RatingResponse> rateAuthority({
     required String complainId,
     required int responseSpeedScore,
     String? comment,
   }) async {
     try {
+      final int id = int.parse(complainId);
       final response = await _dio.post<dynamic>(
-        '${ApiConstants.baseUrl}/complains/$complainId/rate',
+        ApiConstants.rateComplaint(id),
         data: {
           'response_speed_score': responseSpeedScore,
-          if (comment != null && comment.trim().isNotEmpty) 'comment': comment.trim(),
+          if (comment != null && comment.trim().isNotEmpty)
+            'comment': comment.trim(),
         },
       );
-      return RatingResponse.fromJson(response.data);
+      return RatingResponse.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw Exception(BaseClient.handleError(e));
     }
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  // ─────────────────────────────────────────────────────────────────────────
+
+  // ───────────────────────────────────────────────────────────────
   Future<RejectComplaintResponse> rejectComplaint({
     required String complainId,
     required String rejectionReason,
   }) async {
     try {
+      final int id = int.parse(complainId);
       final response = await _dio.post<dynamic>(
-        '${ApiConstants.baseUrl}/complaints/$complainId/reject',
-        data: {'rejection_reason': rejectionReason.trim()},
+        ApiConstants.rejectComplaint(id),
+        data: {
+          'rejection_reason': rejectionReason.trim(),
+        },
       );
-      return RejectComplaintResponse.fromJson(response.data);
+      return RejectComplaintResponse.fromJson(
+          response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw Exception(BaseClient.handleError(e));
     }
   }
-
 }

@@ -66,7 +66,6 @@ class ChatScreen extends StatelessWidget {
         onPressed: () => Get.back(),
       ),
       actions: [
-        // زر فتح/إغلاق الشات — للمسؤولين فقط
         if (Rbac.isOfficialUser())
           Obx(
             () => IconButton(
@@ -101,6 +100,8 @@ class ChatScreen extends StatelessWidget {
     );
   }
 
+  // ──────────────────────────────────────────────
+  // شريط الإغلاق
   // ──────────────────────────────────────────────
   Widget _buildClosedBanner() {
     return Obx(() {
@@ -198,17 +199,14 @@ class ChatScreen extends StatelessWidget {
         itemBuilder: (_, i) {
           final m = controller.messages[i];
 
-          final bool isMe;
-          if (Rbac.isOfficialUser()) {
-            isMe = m.senderType == 'official';
-          } else {
-            isMe = m.senderType == 'citizen' || m.senderType == 'user';
-          }
+          final bool isMe = Rbac.isOfficialUser()
+              ? m.isFromOfficial
+              : m.isFromCitizen;
 
           return _MessageBubble(
             text: m.message,
             isMe: isMe,
-            senderName: m.senderName ?? '',
+            senderName: isMe ? '' : (m.senderName ?? ''),
             time: m.sentAt != null
                 ? '${m.sentAt!.hour}:${m.sentAt!.minute.toString().padLeft(2, '0')}'
                 : '',
@@ -238,6 +236,7 @@ class ChatScreen extends StatelessWidget {
         ),
         child: Row(
           children: [
+            // ── زر الإرسال ──
             Obx(
               () => AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
@@ -277,6 +276,7 @@ class ChatScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 10),
+
             Expanded(
               child: TextField(
                 controller: controller.inputController,
@@ -338,68 +338,113 @@ class _MessageBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 5),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.75,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isMe ? _primary : Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isMe ? 16 : 0),
-            bottomRight: Radius.circular(isMe ? 0 : 16),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.06),
-              blurRadius: 6,
-              offset: const Offset(0, 2),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: isMe
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          if (!isMe) ...[
+            Container(
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.only(left: 8, bottom: 4),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE0F7FA),
+                shape: BoxShape.circle,
+                border: Border.all(color: _primary.withOpacity(0.3), width: 1),
+              ),
+              child: const Icon(
+                Icons.person_rounded,
+                color: _primary,
+                size: 18,
+              ),
             ),
           ],
-        ),
-        child: Column(
-          crossAxisAlignment: isMe
-              ? CrossAxisAlignment.end
-              : CrossAxisAlignment.start,
-          children: [
-            if (!isMe && senderName.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  senderName,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: _primary,
-                  ),
+
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.72,
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: isMe ? _primary : Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: const Radius.circular(18),
+                  topRight: const Radius.circular(18),
+                  bottomLeft: Radius.circular(isMe ? 18 : 4),
+                  bottomRight: Radius.circular(isMe ? 4 : 18),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.07),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-            Text(
-              text,
-              textAlign: isMe ? TextAlign.right : TextAlign.left,
-              style: TextStyle(
-                color: isMe ? Colors.white : const Color(0xFF37474F),
-                fontSize: 14,
-                height: 1.4,
+              child: Column(
+                crossAxisAlignment: isMe
+                    ? CrossAxisAlignment.end
+                    : CrossAxisAlignment.start,
+                children: [
+                  if (!isMe && senderName.isNotEmpty) ...[
+                    Text(
+                      senderName,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: _primary,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                  ],
+
+                  Text(
+                    text,
+                    textAlign: isMe ? TextAlign.right : TextAlign.left,
+                    style: TextStyle(
+                      color: isMe ? Colors.white : const Color(0xFF212121),
+                      fontSize: 15,
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+
+                  Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: isMe
+                          ? Colors.white.withOpacity(0.75)
+                          : const Color(0xFF9E9E9E),
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            Text(
-              time,
-              style: TextStyle(
-                fontSize: 10,
-                color: isMe
-                    ? Colors.white.withOpacity(0.7)
-                    : const Color(0xFFB0BEC5),
+          ),
+
+          if (isMe) ...[
+            Container(
+              width: 32,
+              height: 32,
+              margin: const EdgeInsets.only(right: 8, bottom: 4),
+              decoration: BoxDecoration(
+                color: _primary.withOpacity(0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.person_rounded,
+                color: _primary,
+                size: 18,
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }

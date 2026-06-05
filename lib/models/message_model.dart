@@ -1,65 +1,80 @@
 class MessageModel {
   final int? id;
-  final int chatId;
-  final int senderId;
   final String message;
+  final String? fileUrl;
+  final String? fileType;
+  final bool isRead;
   final DateTime? sentAt;
-
-  final String senderType; // 'official' أو 'citizen'
+  final String? senderType;
   final String? senderName;
+  final int? senderId;
 
   const MessageModel({
     this.id,
-    required this.chatId,
-    required this.senderId,
     required this.message,
+    this.fileUrl,
+    this.fileType,
+    this.isRead = false,
     this.sentAt,
-    this.senderType = 'citizen',
+    this.senderType,
     this.senderName,
+    this.senderId,
   });
 
-  static DateTime? _readNullableDateTime(
-    Map<String, dynamic> json,
-    String key,
-  ) {
-    final value = json[key];
-    if (value == null) return null;
-    if (value is DateTime) return value;
-    return DateTime.tryParse(value.toString());
-  }
-
-  static int _readInt(Map<String, dynamic> json, String key) {
-    final value = json[key];
-    if (value is int) return value;
-    if (value is String) return int.tryParse(value) ?? 0;
-    return 0;
-  }
-
-  static String _readString(Map<String, dynamic> json, String key) {
-    return json[key]?.toString() ?? '';
-  }
-
   factory MessageModel.fromJson(Map<String, dynamic> json) {
+    String? senderName;
+    int? senderId;
+    if (json['sender'] is Map) {
+      final sender = Map<String, dynamic>.from(json['sender'] as Map);
+      senderName = sender['name']?.toString();
+      senderId = sender['id'] is int
+          ? sender['id'] as int
+          : int.tryParse(sender['id']?.toString() ?? '');
+    }
+
+    final String? rawSenderType =
+        json['senderType']?.toString() ?? json['sender_type']?.toString();
+
     return MessageModel(
-      id: json['message_id'] == null ? null : _readInt(json, 'message_id'),
-      chatId: _readInt(json, 'chat_id'),
-      senderId: _readInt(json, 'sender_id'),
-      message: _readString(json, 'message'),
-      sentAt: _readNullableDateTime(json, 'sent_at'),
-      senderType: _readString(json, 'sender_type').isEmpty
-          ? 'citizen'
-          : _readString(json, 'sender_type'),
-      senderName: json['sender_name'],
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? ''),
+      message: json['message']?.toString() ?? '',
+      fileUrl: json['file_url']?.toString(),
+      fileType: json['file_type']?.toString(),
+      isRead: json['is_read'] == true || json['is_read'] == 1,
+      sentAt: json['sent_at'] != null
+          ? DateTime.tryParse(json['sent_at'].toString())
+          : null,
+      senderType: rawSenderType?.toLowerCase().trim(),
+      senderName: senderName,
+      senderId: senderId,
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'message_id': id,
-    'chat_id': chatId,
-    'sender_id': senderId,
+    'id': id,
     'message': message,
+    'file_url': fileUrl,
+    'file_type': fileType,
+    'is_read': isRead ? 1 : 0,
     'sent_at': sentAt?.toIso8601String(),
-    'sender_type': senderType,
+    'senderType': senderType,
     'sender_name': senderName,
+    'sender_id': senderId,
   };
+
+  bool get isFromOfficial {
+    final t = senderType?.toLowerCase() ?? '';
+    return t == 'manager' ||
+        t == 'dept_manager' ||
+        t == 'employee' ||
+        t == 'admin' ||
+        t == 'official';
+  }
+
+  bool get isFromCitizen {
+    final t = senderType?.toLowerCase() ?? '';
+    return t == 'citizen' || t == 'user';
+  }
 }

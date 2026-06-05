@@ -20,6 +20,10 @@ import '../../screens/splash/splash_screen.dart';
 // Notifications
 import '../../screens/notifications/notifications_screen.dart';
 
+//  Rating
+import '../../screens/rating/rating_screen.dart';
+import '../../bindings/rating_binding.dart';
+
 // Employee
 import '../../screens/employee/complaint_details_page.dart';
 import '../../screens/employee/employee_dashboard_page.dart';
@@ -101,7 +105,17 @@ abstract class AppPages {
     ),
 
     // ──────────────────────────────────────────────
-    // Notifications — مشترك بين جميع الأدوار
+    //  — تقييم الجهة بعد حل الشكوى
+    // ──────────────────────────────────────────────
+    GetPage<void>(
+      name: Routes.RATING,
+      page: () => const RatingScreen(),
+      binding: RatingBinding(),
+      transition: Transition.cupertino,
+    ),
+
+    // ──────────────────────────────────────────────
+    // Notifications
     // ──────────────────────────────────────────────
     GetPage<void>(
       name: Routes.NOTIFICATIONS,
@@ -110,7 +124,7 @@ abstract class AppPages {
     ),
 
     // ──────────────────────────────────────────────
-    // Chat — مشترك بين جميع الأدوار
+    // Chat — مشترك
     // ──────────────────────────────────────────────
     GetPage<void>(name: Routes.CHAT, page: () => ChatScreen()),
 

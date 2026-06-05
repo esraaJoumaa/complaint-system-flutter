@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../controllers/department_manager/department_manager_controller.dart';
+import '../../services/authority_service.dart';
 
-/// شاشة إنشاء موظف جديد — خاصة بمدير القسم
-/// تُرسل البيانات إلى /admin/create-user عبر الـ Controller
 class CreateEmployeeScreen extends StatefulWidget {
   const CreateEmployeeScreen({super.key});
 
@@ -13,30 +12,29 @@ class CreateEmployeeScreen extends StatefulWidget {
 }
 
 class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
-  // ── الألوان ──
-  static const Color _primary    = Color(0xFF00838F);
-  static const Color _dark       = Color(0xFF006064);
+  static const Color _primary = Color(0xFF00838F);
+  static const Color _dark = Color(0xFF006064);
   static const Color _background = Color(0xFFE0F7FA);
 
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // Controllers حقول النموذج
-  final TextEditingController _nameController       = TextEditingController();
-  final TextEditingController _emailController      = TextEditingController();
-  final TextEditingController _usernameController   = TextEditingController();
-  final TextEditingController _phoneController      = TextEditingController();
-  final TextEditingController _passwordController   = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPassController = TextEditingController();
 
-  // حالة إظهار/إخفاء كلمة المرور
-  bool _obscurePassword        = true;
+  bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
-  // القسم المختار من الـ Dropdown
   int? _selectedDepartmentId;
-
-  // role_id ثابت للموظف = 4 حسب الـ API
   static const int _employeeRoleId = 4;
+  static const int _authorityId = 1;
+
+  final RxList<Map<String, dynamic>> _departments =
+      <Map<String, dynamic>>[].obs;
+  final RxBool _loadingDepts = false.obs;
 
   late final DepartmentManagerController _controller;
 
@@ -44,10 +42,22 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
   void initState() {
     super.initState();
     _controller = Get.find<DepartmentManagerController>();
-    // جلب الأقسام لعرضها في الـ Dropdown
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.fetchMyDepartments();
-    });
+    _fetchDepartments();
+  }
+
+  Future<void> _fetchDepartments() async {
+    try {
+      _loadingDepts.value = true;
+      final result = await AuthorityService.instance.fetchAllDepartments();
+      _departments.assignAll(result);
+    } catch (_) {
+      // fallback: حاول من controller
+      if (_controller.myDepartments.isNotEmpty) {
+        _departments.assignAll(_controller.myDepartments);
+      }
+    } finally {
+      _loadingDepts.value = false;
+    }
   }
 
   @override
@@ -67,7 +77,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
       backgroundColor: _background,
       appBar: _buildAppBar(),
       body: GestureDetector(
-        // إغلاق الكيبورد عند الضغط خارج الحقول
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
@@ -77,37 +86,113 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // ── رأس الصفحة ──
                 _buildPageHeader(),
                 const SizedBox(height: 24),
 
-                // ── البيانات الشخصية ──
-                _buildSectionTitle('البيانات الشخصية', Icons.person_outline_rounded),
+                _buildSectionTitle(
+                  'البيانات الشخصية',
+                  Icons.person_outline_rounded,
+                ),
                 const SizedBox(height: 12),
-                _buildNameField(),
+                _buildField(
+                  _nameController,
+                  'الاسم الكامل للموظف',
+                  Icons.badge_outlined,
+                  TextDirection.rtl,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty)
+                      return 'الاسم الكامل مطلوب';
+                    if (v.trim().length < 3) return 'الاسم قصير جداً';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 14),
-                _buildUsernameField(),
+                _buildField(
+                  _usernameController,
+                  'اسم المستخدم (بالإنجليزية)',
+                  Icons.alternate_email_rounded,
+                  TextDirection.ltr,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty)
+                      return 'اسم المستخدم مطلوب';
+                    if (v.trim().length < 4) return 'اسم المستخدم قصير جداً';
+                    if (v.contains(' ')) return 'لا يجوز استخدام المسافات';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 14),
-                _buildPhoneField(),
+                _buildField(
+                  _phoneController,
+                  'رقم الهاتف',
+                  Icons.phone_outlined,
+                  TextDirection.ltr,
+                  keyboard: TextInputType.phone,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty)
+                      return 'رقم الهاتف مطلوب';
+                    if (v.trim().length < 9) return 'رقم الهاتف غير صحيح';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 24),
 
-                // ── بيانات الحساب ──
                 _buildSectionTitle('بيانات الحساب', Icons.lock_outline_rounded),
                 const SizedBox(height: 12),
-                _buildEmailField(),
+                _buildField(
+                  _emailController,
+                  'البريد الإلكتروني',
+                  Icons.email_outlined,
+                  TextDirection.ltr,
+                  keyboard: TextInputType.emailAddress,
+                  validator: (v) {
+                    if (v == null || v.trim().isEmpty)
+                      return 'البريد الإلكتروني مطلوب';
+                    if (!GetUtils.isEmail(v.trim()))
+                      return 'البريد الإلكتروني غير صحيح';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 14),
-                _buildPasswordField(),
+                _buildPasswordField(
+                  _passwordController,
+                  'كلمة المرور',
+                  Icons.lock_outline_rounded,
+                  _obscurePassword,
+                  () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'كلمة المرور مطلوبة';
+                    if (v.length < 8) return 'يجب أن تكون 8 أحرف على الأقل';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 14),
-                _buildConfirmPasswordField(),
+                _buildPasswordField(
+                  _confirmPassController,
+                  'تأكيد كلمة المرور',
+                  Icons.lock_reset_outlined,
+                  _obscureConfirmPassword,
+                  () {
+                    setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword,
+                    );
+                  },
+                  validator: (v) {
+                    if (v == null || v.isEmpty)
+                      return 'تأكيد كلمة المرور مطلوب';
+                    if (v != _passwordController.text)
+                      return 'كلمتا المرور غير متطابقتين';
+                    return null;
+                  },
+                ),
                 const SizedBox(height: 24),
 
-                // ── بيانات التعيين ──
                 _buildSectionTitle('بيانات التعيين', Icons.business_outlined),
                 const SizedBox(height: 12),
                 _buildDepartmentDropdown(),
                 const SizedBox(height: 32),
 
-                // ── زر الإنشاء ──
                 _buildSubmitButton(),
               ],
             ),
@@ -150,9 +235,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // رأس الصفحة
-  // ──────────────────────────────────────────────
   Widget _buildPageHeader() {
     return Container(
       width: double.infinity,
@@ -189,10 +271,7 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
               SizedBox(height: 4),
               Text(
                 'أدخل بيانات الموظف الجديد بدقة',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 12),
               ),
             ],
           ),
@@ -215,9 +294,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // عنوان القسم
-  // ──────────────────────────────────────────────
   Widget _buildSectionTitle(String title, IconData icon) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -244,195 +320,167 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     );
   }
 
-  // ──────────────────────────────────────────────
-  // حقول النموذج
-  // ──────────────────────────────────────────────
-
-  Widget _buildNameField() {
-    return _FormField(
-      controller: _nameController,
-      hint: 'الاسم الكامل للموظف',
-      icon: Icons.badge_outlined,
-      textDirection: TextDirection.rtl,
-      validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'الاسم الكامل مطلوب';
-        if (v.trim().length < 3) return 'الاسم قصير جداً';
-        return null;
-      },
+  Widget _buildField(
+    TextEditingController controller,
+    String hint,
+    IconData icon,
+    TextDirection dir, {
+    TextInputType keyboard = TextInputType.text,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      textAlign: dir == TextDirection.rtl ? TextAlign.right : TextAlign.left,
+      textDirection: dir,
+      keyboardType: keyboard,
+      style: const TextStyle(color: Color(0xFF37474F), fontSize: 14),
+      decoration: _dec(hint, icon),
+      validator: validator,
     );
   }
 
-  Widget _buildUsernameField() {
-    return _FormField(
-      controller: _usernameController,
-      hint: 'اسم المستخدم (بالإنجليزية)',
-      icon: Icons.alternate_email_rounded,
+  Widget _buildPasswordField(
+    TextEditingController controller,
+    String hint,
+    IconData icon,
+    bool obscure,
+    VoidCallback onToggle, {
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
       textDirection: TextDirection.ltr,
-      keyboardType: TextInputType.emailAddress,
-      validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'اسم المستخدم مطلوب';
-        if (v.trim().length < 4) return 'اسم المستخدم قصير جداً';
-        if (v.contains(' ')) return 'لا يجوز استخدام المسافات';
-        return null;
-      },
-    );
-  }
-
-  Widget _buildPhoneField() {
-    return _FormField(
-      controller: _phoneController,
-      hint: 'رقم الهاتف',
-      icon: Icons.phone_outlined,
-      textDirection: TextDirection.ltr,
-      keyboardType: TextInputType.phone,
-      validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'رقم الهاتف مطلوب';
-        if (v.trim().length < 9) return 'رقم الهاتف غير صحيح';
-        return null;
-      },
-    );
-  }
-
-  Widget _buildEmailField() {
-    return _FormField(
-      controller: _emailController,
-      hint: 'البريد الإلكتروني',
-      icon: Icons.email_outlined,
-      textDirection: TextDirection.ltr,
-      keyboardType: TextInputType.emailAddress,
-      validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'البريد الإلكتروني مطلوب';
-        if (!GetUtils.isEmail(v.trim())) return 'البريد الإلكتروني غير صحيح';
-        return null;
-      },
-    );
-  }
-
-  Widget _buildPasswordField() {
-    return _FormField(
-      controller: _passwordController,
-      hint: 'كلمة المرور',
-      icon: Icons.lock_outline_rounded,
-      textDirection: TextDirection.ltr,
-      obscureText: _obscurePassword,
-      suffixIcon: IconButton(
-        icon: Icon(
-          _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-          color: _primary,
-          size: 20,
+      style: const TextStyle(color: Color(0xFF37474F), fontSize: 14),
+      decoration: _dec(
+        hint,
+        icon,
+        suffix: IconButton(
+          icon: Icon(
+            obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+            color: _primary,
+            size: 20,
+          ),
+          onPressed: onToggle,
         ),
-        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
       ),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'كلمة المرور مطلوبة';
-        if (v.length < 8) return 'كلمة المرور يجب أن تكون 8 أحرف على الأقل';
-        return null;
-      },
-    );
-  }
-
-  Widget _buildConfirmPasswordField() {
-    return _FormField(
-      controller: _confirmPassController,
-      hint: 'تأكيد كلمة المرور',
-      icon: Icons.lock_reset_outlined,
-      textDirection: TextDirection.ltr,
-      obscureText: _obscureConfirmPassword,
-      suffixIcon: IconButton(
-        icon: Icon(
-          _obscureConfirmPassword
-              ? Icons.visibility_off_outlined
-              : Icons.visibility_outlined,
-          color: _primary,
-          size: 20,
-        ),
-        onPressed: () =>
-            setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
-      ),
-      validator: (v) {
-        if (v == null || v.isEmpty) return 'تأكيد كلمة المرور مطلوب';
-        if (v != _passwordController.text) return 'كلمتا المرور غير متطابقتين';
-        return null;
-      },
+      validator: validator,
     );
   }
 
   Widget _buildDepartmentDropdown() {
     return Obx(() {
-      final departments = _controller.myDepartments;
-
-      return Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: _primary.withOpacity(0.08),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: DropdownButtonFormField<int>(
-          value: _selectedDepartmentId,
-          isExpanded: true,
-          decoration: InputDecoration(
-            hintText: departments.isEmpty ? 'جاري تحميل الأقسام...' : 'اختر القسم',
-            hintStyle: const TextStyle(
-              color: Color(0xFFB0BEC5),
-              fontSize: 13,
-            ),
-            prefixIcon: const Icon(Icons.business_outlined, color: _primary, size: 20),
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: _primary.withOpacity(0.2)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: BorderSide(color: _primary.withOpacity(0.2)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: _primary, width: 1.5),
-            ),
-            errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(14),
-              borderSide: const BorderSide(color: Colors.red),
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      if (_loadingDepts.value) {
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _primary.withOpacity(0.2)),
           ),
-          items: departments.map((dept) {
-            return DropdownMenuItem<int>(
-              value: dept['id'] as int?,
-              child: Text(
-                dept['name']?.toString() ?? '',
-                textAlign: TextAlign.right,
-                style: const TextStyle(
-                  color: Color(0xFF37474F),
-                  fontSize: 14,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: _primary,
                 ),
               ),
-            );
-          }).toList(),
-          onChanged: (val) => setState(() => _selectedDepartmentId = val),
-          validator: (v) => v == null ? 'يرجى اختيار القسم' : null,
-          icon: const Icon(Icons.keyboard_arrow_down_rounded, color: _primary),
-          dropdownColor: Colors.white,
-        ),
+              SizedBox(width: 12),
+              Text(
+                'جاري تحميل الأقسام...',
+                style: TextStyle(color: Color(0xFF90A4AE), fontSize: 13),
+              ),
+            ],
+          ),
+        );
+      }
+
+      if (_departments.isEmpty) {
+        return GestureDetector(
+          onTap: _fetchDepartments,
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.orange.withOpacity(0.4)),
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.refresh_rounded, color: Color(0xFF00838F), size: 18),
+                SizedBox(width: 8),
+                Text(
+                  'لم يتم تحميل الأقسام — اضغط للمحاولة',
+                  style: TextStyle(color: Color(0xFF546E7A), fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      return DropdownButtonFormField<int>(
+        value: _selectedDepartmentId,
+        isExpanded: true,
+        decoration: _dec('اختر القسم', Icons.business_outlined),
+        items: _departments.map((dept) {
+          return DropdownMenuItem<int>(
+            value: dept['id'] as int?,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                dept['name']?.toString() ?? '',
+                style: const TextStyle(color: Color(0xFF37474F), fontSize: 14),
+              ),
+            ),
+          );
+        }).toList(),
+        onChanged: (val) => setState(() => _selectedDepartmentId = val),
+        validator: (v) => v == null ? 'يرجى اختيار القسم' : null,
+        icon: const Icon(Icons.keyboard_arrow_down_rounded, color: _primary),
+        dropdownColor: Colors.white,
       );
     });
   }
 
-  // ──────────────────────────────────────────────
-  // زر الإنشاء
-  // ──────────────────────────────────────────────
+  InputDecoration _dec(String hint, IconData icon, {Widget? suffix}) {
+    return InputDecoration(
+      hintText: hint,
+      hintTextDirection: TextDirection.rtl,
+      hintStyle: const TextStyle(color: Color(0xFFB0BEC5), fontSize: 13),
+      prefixIcon: Icon(icon, color: _primary, size: 20),
+      suffixIcon: suffix,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: _primary.withOpacity(0.2)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: _primary.withOpacity(0.2)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: _primary, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: Colors.red),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      errorStyle: const TextStyle(fontSize: 11),
+    );
+  }
+
   Widget _buildSubmitButton() {
     return Obx(() {
       final isLoading = _controller.isLoadingAction.value;
-
       return GestureDetector(
         onTap: isLoading ? null : _onSubmit,
         child: AnimatedContainer(
@@ -479,7 +527,6 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
                           color: Colors.white,
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          letterSpacing: 0.5,
                         ),
                       ),
                       SizedBox(width: 10),
@@ -496,18 +543,16 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
     });
   }
 
-  // ──────────────────────────────────────────────
-  // Submit
-  // ──────────────────────────────────────────────
   void _onSubmit() {
     if (!_formKey.currentState!.validate()) return;
-    if (_selectedDepartmentId == null) return;
-
-    // جلب authority_id من القسم المختار
-    final selectedDept = _controller.myDepartments.firstWhereOrNull(
-      (d) => d['id'] == _selectedDepartmentId,
-    );
-    final authorityId = selectedDept?['authority_id'] as int? ?? 1;
+    if (_selectedDepartmentId == null) {
+      Get.snackbar(
+        'تنبيه',
+        'يرجى اختيار القسم',
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
 
     _controller.createEmployee(
       name: _nameController.text.trim(),
@@ -517,88 +562,8 @@ class _CreateEmployeeScreenState extends State<CreateEmployeeScreen> {
       password: _passwordController.text,
       passwordConfirmation: _confirmPassController.text,
       roleId: _employeeRoleId,
-      authorityId: authorityId,
+      authorityId: _authorityId,
       departmentId: _selectedDepartmentId!,
-    );
-  }
-}
-
-// ══════════════════════════════════════════════════════
-// Widget مساعد — حقل نموذج موحد
-// ══════════════════════════════════════════════════════
-class _FormField extends StatelessWidget {
-  final TextEditingController controller;
-  final String hint;
-  final IconData icon;
-  final TextDirection textDirection;
-  final TextInputType keyboardType;
-  final bool obscureText;
-  final Widget? suffixIcon;
-  final String? Function(String?)? validator;
-
-  static const Color _primary = Color(0xFF00838F);
-
-  const _FormField({
-    required this.controller,
-    required this.hint,
-    required this.icon,
-    required this.textDirection,
-    this.keyboardType = TextInputType.text,
-    this.obscureText = false,
-    this.suffixIcon,
-    this.validator,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return TextFormField(
-      controller: controller,
-      textAlign: textDirection == TextDirection.rtl
-          ? TextAlign.right
-          : TextAlign.left,
-      textDirection: textDirection,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      style: const TextStyle(
-        color: Color(0xFF37474F),
-        fontSize: 14,
-      ),
-      decoration: InputDecoration(
-        hintText: hint,
-        hintTextDirection: TextDirection.rtl,
-        hintStyle: const TextStyle(
-          color: Color(0xFFB0BEC5),
-          fontSize: 13,
-        ),
-        prefixIcon: Icon(icon, color: _primary, size: 20),
-        suffixIcon: suffixIcon,
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: _primary.withOpacity(0.2)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: _primary.withOpacity(0.2)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: _primary, width: 1.5),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.red),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.red, width: 1.5),
-        ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        errorStyle: const TextStyle(fontSize: 11),
-      ),
-      validator: validator,
     );
   }
 }

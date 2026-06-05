@@ -27,6 +27,17 @@ class AuthService {
     }
   }
 
+  // ──────────────────────────────────────────────
+  Future<UserModel> me() async {
+    try {
+      final response = await _dio.get<dynamic>(ApiConstants.me);
+      return _parseUserFromResponse(response.data);
+    } on DioException catch (e) {
+      throw Exception(BaseClient.handleError(e));
+    }
+  }
+
+  // ──────────────────────────────────────────────
   Future<UserModel> register({
     required String name,
     required String email,
@@ -46,19 +57,16 @@ class AuthService {
           'password_confirmation': password,
         },
       );
-
       final data = response.data;
       if (data is Map) {
         final map = Map<String, dynamic>.from(data);
         if (map['success'] == false) {
           throw Exception(map['message']?.toString() ?? 'خطأ في التسجيل');
         }
-
         final dynamic userField = map['data'];
         final Map<String, dynamic> userMap = (userField is Map)
             ? Map<String, dynamic>.from(userField)
             : map;
-
         return UserModel.fromJson(userMap);
       }
       throw Exception('استجابة غير متوقعة من السيرفر');
@@ -67,6 +75,7 @@ class AuthService {
     }
   }
 
+  // ──────────────────────────────────────────────
   Future<UserModel> verifyEmail(String email, String code) async {
     try {
       final response = await _dio.post<dynamic>(
@@ -74,22 +83,40 @@ class AuthService {
         data: {'email': email, 'code': code.trim()},
       );
 
-      final data = response.data;
-      if (data is Map) {
-        final map = Map<String, dynamic>.from(data);
+      final responseData = response.data;
+      if (responseData is Map) {
+        final root = Map<String, dynamic>.from(responseData);
 
-        if (map['success'] == false) {
+        if (root['success'] == false) {
           throw Exception(
-            map['message']?.toString() ??
+            root['message']?.toString() ??
                 'رمز التحقق غير صحيح أو منتهي الصلاحية',
           );
         }
 
-        final user = _parseUserFromResponse(data);
-        if ((user.token ?? '').trim().isNotEmpty) {
-          await TokenStorage.save(user.token!);
+        final dynamic dataField = root['data'];
+        if (dataField is Map) {
+          final container = Map<String, dynamic>.from(dataField);
+
+          final String? token = container['token']?.toString();
+
+          final dynamic userField = container['user'];
+          if (userField is Map) {
+            final Map<String, dynamic> userMap = Map<String, dynamic>.from(
+              userField,
+            );
+
+            if (token != null && token.isNotEmpty) {
+              userMap['token'] = token;
+            }
+
+            final user = UserModel.fromJson(userMap);
+            if ((user.token ?? '').trim().isNotEmpty) {
+              await TokenStorage.save(user.token!);
+            }
+            return user;
+          }
         }
-        return user;
       }
       throw Exception('استجابة غير متوقعة من السيرفر');
     } on DioException catch (e) {
@@ -97,15 +124,7 @@ class AuthService {
     }
   }
 
-  Future<UserModel> me() async {
-    try {
-      final response = await _dio.get<dynamic>(ApiConstants.me);
-      return _parseUserFromResponse(response.data);
-    } on DioException catch (e) {
-      throw Exception(BaseClient.handleError(e));
-    }
-  }
-
+  // ──────────────────────────────────────────────
   static UserModel _parseUserFromResponse(dynamic responseData) {
     if (responseData == null) throw Exception('استجابة فارغة من السيرفر');
     if (responseData is! Map) throw Exception('تنسيق استجابة غير صالح');
@@ -130,6 +149,7 @@ class AuthService {
 
     if (token != null && token.isNotEmpty) userMap['token'] = token;
 
+    // role object
     if (userMap['role'] == null) {
       if (container['role'] is Map)
         userMap['role'] = container['role'];

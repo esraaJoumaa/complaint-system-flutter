@@ -19,15 +19,19 @@ class ComplaintController extends GetxController {
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController trackIdController = TextEditingController();
 
+  // ── الاختيارات ──
   final RxInt selectedAuthorityId = 0.obs;
   final RxInt selectedDepartmentId = 0.obs;
 
+  // ── الحالات ──
   final RxBool isUploading = false.obs;
   final RxBool isTracking = false.obs;
 
+  // ── البيانات ──
   final RxList<String> attachmentPaths = <String>[].obs;
   final Rxn<ComplaintModel> trackedComplaint = Rxn<ComplaintModel>();
 
+  // ── الجهات والأقسام — مبنية على الداتا بيز الفعلية ──
   final Map<int, String> authorities = const <int, String>{
     1: 'جامعة الشام الخاصة',
   };
@@ -35,11 +39,11 @@ class ComplaintController extends GetxController {
   final Map<int, Map<int, String>> departmentsByAuthority =
       const <int, Map<int, String>>{
         1: <int, String>{
+          1: 'دائرة الامتحانات',
           2: 'قسم النقل',
-          3: 'دائرة الامتحانات',
-          4: 'قسم شؤون الطلبة',
-          5: 'قسم الشؤون الأكاديمية',
-          6: 'قسم المالية',
+          3: 'قسم شؤون الطلبة',
+          4: 'قسم الشؤون الأكاديمية',
+          5: 'قسم المالية',
         },
       };
 
@@ -52,13 +56,11 @@ class ComplaintController extends GetxController {
   // ──────────────────────────────────────────────
   Future<void> trackComplaint() async {
     final String raw = trackIdController.text.trim();
-
     if (raw.isEmpty) {
       _showError('يرجى إدخال رقم الشكوى للمتابعة');
       return;
     }
 
-    // التحقق من أن المدخل رقم صحيح
     final int? id = int.tryParse(raw);
     if (id == null) {
       _showError('رقم الشكوى يجب أن يكون رقماً صحيحاً');
@@ -68,7 +70,6 @@ class ComplaintController extends GetxController {
     try {
       isTracking.value = true;
       trackedComplaint.value = null;
-
       final complaint = await _complaintService.getComplaintById(id);
       trackedComplaint.value = complaint;
     } catch (e) {
@@ -88,7 +89,6 @@ class ComplaintController extends GetxController {
         allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
         allowMultiple: true,
       );
-
       if (result == null) return;
 
       final List<String> picked = result.files
@@ -108,7 +108,7 @@ class ComplaintController extends GetxController {
         colorText: Colors.white,
         duration: const Duration(seconds: 2),
       );
-    } catch (e) {
+    } catch (_) {
       _showError('فشل في الوصول للملفات');
     }
   }
@@ -169,6 +169,9 @@ class ComplaintController extends GetxController {
     }
   }
 
+  // ──────────────────────────────────────────────
+  // Helpers
+  // ──────────────────────────────────────────────
   void _clearFields() {
     fullNameController.clear();
     titleController.clear();

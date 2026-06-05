@@ -12,6 +12,17 @@ class ChatService {
   // ──────────────────────────────────────────────
   // جلب سجل الرسائل
   // ──────────────────────────────────────────────
+
+  Future<void> openChat(int complaintId) async {
+    try {
+      await _dio.post<dynamic>('/chat/open/$complaintId');
+    } on DioException catch (e) {
+      throw Exception(BaseClient.handleError(e));
+    } catch (e) {
+      throw Exception('فشل فتح المحادثة');
+    }
+  }
+
   Future<List<MessageModel>> getHistory(int complaintId) async {
     try {
       final response = await _dio.get<dynamic>(
